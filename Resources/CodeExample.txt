@@ -1,0 +1,540 @@
+       IDENTIFICATION DIVISION.                                                 
+       PROGRAM-ID.                                                              
+           ZM3ACC02.                                                            
+       AUTHOR.                                                                  
+       INSTALLATION.                                                            
+           BBVA BANCOMER S.A. DE C.V.                                           
+       DATE-WRITTEN.                                                            
+           OCTUBRE/2017                                                         
+      *---------------------------------------------------------------*         
+      * OBJETIVO: DESCARGA DE LA TABLA OPERASI PARA REPORTE GENERADO  *         
+      *           POR EVENTO  DE COVAF         (PROCESO LINEA-BATCH)  *         
+      *---------------------------------------------------------------*         
+      *---------------------------------------------------------------*         
+      * LOG DE MODIFICACIONES                                         *         
+      *---------------------------------------------------------------*         
+      * MARCA    AUTHOR    FECHA            DESCRIPCION                         
+      * ------   -------   -------     -------------------------------*         
+      *                                                               *         
+      *---------------------------------------------------------------*         
+       ENVIRONMENT DIVISION.                                                    
+       CONFIGURATION SECTION.                                                   
+       SOURCE-COMPUTER.  IBM-370.                                               
+       OBJECT-COMPUTER.  IBM-370.                                               
+       INPUT-OUTPUT SECTION.                                                    
+       FILE-CONTROL.                                                            
+      *----                                                                     
+      *     ENTRADA                                                             
+      *----                                                                     
+           SELECT ZMACC0U0         ASSIGN TO ZMACC0U0                           
+                                   ORGANIZATION IS SEQUENTIAL                   
+                                   ACCESS MODE IS SEQUENTIAL                    
+                                   FILE STATUS IS WSS-FS-ENTRADA.               
+      *----                                                                     
+      *     SALIDA                                                              
+      *----                                                                     
+           SELECT ZMACC0U2         ASSIGN TO ZMACC0U2                           
+                                   ORGANIZATION IS SEQUENTIAL                   
+                                   ACCESS MODE IS SEQUENTIAL                    
+                                   FILE STATUS IS WSS-FS-SALIDA.                
+      *------------                                                             
+       DATA DIVISION.                                                           
+       FILE SECTION.                                                            
+      *----                                                                     
+      *     DECLARACION DEL ARCHIVO DE ENTRADA                                  
+      *----                                                                     
+       FD  ZMACC0U0                                                             
+           BLOCK CONTAINS 0 RECORDS                                             
+           RECORD CONTAINS  62  CHARACTERS                                      
+           RECORDING MODE IS F                                                  
+           LABEL  RECORD IS STANDARD                                            
+           DATA RECORD IS S1-FILE-OPRSI.                                        
+       01  S1-FILE-OPRSI       PIC X(062).                                      
+      *                                                                         
+      *----                                                                     
+      *     DECLARACION DEL ARCHIVO DE SALIDA                                   
+      *----                                                                     
+       FD  ZMACC0U2                                                             
+           BLOCK CONTAINS 0 RECORDS                                             
+           RECORD CONTAINS  276 CHARACTERS                                      
+           RECORDING MODE IS F                                                  
+           LABEL  RECORD IS STANDARD                                            
+           DATA RECORD IS S1-FILE-SALIDA.                                       
+       01  S1-FILE-SALIDA      PIC X(276).                                      
+      *                                                                         
+                                                                                
+      *                                                                         
+       WORKING-STORAGE SECTION.                                                 
+      *                                                                         
+      *----                                                                     
+      * VARIABLES DE TRABAJO                                                    
+      *----                                                                     
+       01 LLAVE-LEI.                                                            
+          05   EMISORA-LE           PIC X(07) VALUE SPACES.                     
+          05   SERIE-LE             PIC X(08) VALUE SPACES.                     
+          05   TIPOPER-LE           PIC X(01) VALUE SPACES.                     
+       01 LLAVE-ANT.                                                            
+          05   EMISORA-ANT          PIC X(07) VALUE SPACES.                     
+          05   SERIE-ANT            PIC X(08) VALUE SPACES.                     
+          05   TIPOPER-ANT          PIC X(01) VALUE SPACES.                     
+                                                                                
+       01 WS-FECHA1                 PIC  9(08) VALUE ZEROES.                    
+       01 WSV-CODIGO-RET            PIC  9(02) VALUE ZEROES.                    
+       01 WSA-S1-LVH                PIC  9(09) VALUE ZEROES.                    
+       01  VARIABLES.                                                           
+           10  T1-CVE-FONDO         PIC  X(10) VALUE SPACES.                    
+           10  T1-EMISORA           PIC  X(10) VALUE SPACES.                    
+           10  T1-SERIE             PIC  X(10) VALUE SPACES.                    
+           10  T1-TIPO-TRANS        PIC  X(01) VALUE SPACES.                    
+           10  T1-CANT-TITULOS      PIC  9(16)V99 VALUE ZEROES.                 
+           10  T1-MONTO1-OPERA      PIC  9(16)V99 VALUE ZEROES.                 
+           10  T1-MONTO2-OPERA      PIC  9(16)V99 VALUE ZEROES.                 
+           10  T1-FLIQ              PIC  X(10) VALUE SPACES.                    
+           10  T1-VOL-RECOMPRA      PIC S9(15)V USAGE COMP-3                    
+                                               VALUE ZEROES.                    
+           10  T1-VOL-SUSC          PIC S9(15)V USAGE COMP-3                    
+                                               VALUE ZEROES.                    
+           10  T1-LVH-ESTATUS       PIC  X(03) VALUE SPACES.                    
+           10  T1-LVH-IUSUARIO      PIC  X(08) VALUE SPACES.                    
+       10  IMPT-TOT                 PIC  9(16)V99 VALUE ZEROES.                 
+       10  IMPT-TIT-TOT             PIC  9(16)V99 VALUE ZEROES.                 
+       10  OPE-TOT                  PIC  9(05) VALUE ZEROES.                    
+      *                                                                         
+           10  CONTRATO-LE          PIC  X(18) VALUE SPACES.                    
+           10  CONTRATO-ANT         PIC  X(18) VALUE SPACES.                    
+                                                                                
+      *----                                                                     
+      *    LAYOUT ARCHIVO DE ENTRADA                                            
+      *----                                                                     
+       01  LAYOUT-ENTRADA.                                                      
+           10 WSV-IOPERA          PIC S99999V USAGE COMP-3.                     
+           10 WSV-ITRANS          PIC X(1).                                     
+           10 WSV-ETRANS.                                                       
+             15 WSV-EMISORA-01    PIC X(07).                                    
+             15 WSV-SERIE-01      PIC X(08).                                    
+           10 WSV-ICUENTA1        PIC  9999999V USAGE COMP-3.                   
+           10 WSV-CANT1           PIC  999999999999V99 USAGE COMP-3.            
+           10 WSV-CANT2           PIC  999999999999V99 USAGE COMP-3.            
+           10 WSV-SPACE           PIC X(1).                                     
+           10 WSV-FOPERA.                                                       
+              15 T1-YEAR          PIC  9(04) VALUE ZEROES.                      
+              15 T1-GUION1        PIC  X(01) VALUE '-'.                         
+              15 T1-MES           PIC  9(02) VALUE ZEROES.                      
+              15 T1-GUION2        PIC  X(01) VALUE '-'.                         
+              15 T1-DIA           PIC  9(02) VALUE ZEROES.                      
+      *----                                                                     
+      *    LAYOUT COVAF                                                         
+      *----                                                                     
+       01 WS-LAYOUT-COVAF.                                                      
+          05  WSV-IDENTIF-MODU      PIC 9(02) VALUE ZEROES.                     
+          05  WSV-TIP-SOCI          PIC X(03) VALUE SPACES.                     
+          05  WSV-CVE-FONDO         PIC X(10) VALUE SPACES.                     
+          05  WSV-EMISORA           PIC X(10) VALUE SPACES.                     
+          05  WSV-SERIE             PIC X(10) VALUE SPACES.                     
+          05  WSV-TIP-VAL           PIC X(04) VALUE SPACES.                     
+          05  WSV-CUPON             PIC 9(04) VALUE ZEROES.                     
+          05  WSV-ISIN              PIC X(15) VALUE SPACES.                     
+          05  WSV-TIPO-TRANS        PIC X(01) VALUE SPACES.                     
+          05  WSV-TIPO-INVER        PIC X(01) VALUE SPACES.                     
+          05  WSV-NUM-CONSECUTIVO   PIC 9(14) VALUE ZEROES.                     
+          05  WSV-CANT-TITULOS      PIC 9(15) VALUE ZEROES.                     
+          05  FILLER                PIC 9(02) VALUE ZEROES.                     
+          05  WSV-MONTO1-OPERA      PIC 9(16)V99 VALUE ZEROES.                  
+          05  FILLER                PIC 9(02) VALUE ZEROES.                     
+          05  WSV-MONTO2-OPERA      PIC 9(16)V99 VALUE ZEROES.                  
+          05  WSV-INTERES-OPERA     PIC 9(18) VALUE ZEROES.                     
+          05  WSV-TASA              PIC 9(09) VALUE ZEROES.                     
+          05  WSV-TIPO-TASA-RT      PIC X(01) VALUE SPACES.                     
+          05  WSV-TASA-REF-RT       PIC X(05) VALUE SPACES.                     
+          05  WSV-FVENC-RT-PTM      PIC X(08) VALUE SPACES.                     
+          05  WSV-FLIQ              PIC X(08) VALUE SPACES.                     
+          05  WSV-COMISION          PIC 9(08) VALUE ZEROES.                     
+          05  WSV-IMP-COMISION      PIC 9(07) VALUE ZEROES.                     
+          05  WSV-INTERMEDIARIO     PIC X(10) VALUE SPACES.                     
+          05  WSV-HORA              PIC X(08) VALUE SPACES.                     
+          05  WSV-FORM-COBRO-PREMIO PIC X(01) VALUE SPACES.                     
+          05  WSV-MONTO-PREMIO      PIC 9(09) VALUE ZEROES.                     
+          05  WSV-PORC-AFORO        PIC 9(06) VALUE ZEROES.                     
+          05  WSV-PAIS-ORIGEN       PIC X(03) VALUE SPACES.                     
+          05  WSV-CONTRATO          PIC X(12) VALUE SPACES.                     
+          05  WSV-VOL-RECOMPRA      PIC 9(05) VALUE ZEROES.                     
+          05  WSV-VOL-SUSC          PIC 9(05) VALUE ZEROES.                     
+          05  WSV-COMP-MDO-PRIM     PIC 9(04) VALUE ZEROES.                     
+          05  WSV-MEDIO-CONCENTR    PIC 9(04) VALUE ZEROES.                     
+          05  WSV-CALIF-CONTRAP     PIC 9(10) VALUE ZEROES.                     
+          05  WSV-CVE-CALIF         PIC 9(06) VALUE ZEROES.                     
+                                                                                
+      *----                                                                     
+      *    CONSTANTES                                                           
+      *----                                                                     
+       01  WSC-PROGRAMA                PIC X(08)   VALUE 'ZM3ACC02'.            
+       01  W000-CTE-ZEROES             PIC 9(01)   VALUE 0.                     
+                                                                                
+      *--- CONSTANTES DEL ARCHIVO DE SALIDA                                     
+                                                                                
+       01  T1-IDENTIF-MODU             PIC X(02) VALUE '01'.                    
+       01  T1-TIP-SOCI                 PIC X(03) VALUE 'SI '.                   
+       01  T1-TIP-VAL                  PIC X(04) VALUE '51  '.                  
+       01  T1-CUPON                    PIC X(04) VALUE ZEROES.                  
+       01  T1-ISIN                     PIC X(15) VALUE SPACES.                  
+       01  T1-TIPO-INVER               PIC X(01) VALUE 'D'.                     
+       01  T1-NUM-CONSECUTIVO          PIC X(14) VALUE ZEROES.                  
+       01  T1-INTERES-OPERA            PIC X(18) VALUE ZEROES.                  
+       01  T1-TASA                     PIC X(09) VALUE ZEROES.                  
+       01  T1-TIPO-TASA-RT             PIC X(01) VALUE SPACES.                  
+       01  T1-TASA-REF-RT              PIC X(05) VALUE SPACES.                  
+       01  T1-FVENC-RT-PTM             PIC X(07) VALUE SPACES.                  
+       01  T1-COMISION                 PIC X(08) VALUE ZEROES.                  
+       01  T1-IMP-COMISION             PIC X(09) VALUE ZEROES.                  
+       01  T1-INTERMEDIARIO            PIC X(10) VALUE 'SC'.                    
+       01  T1-HORA                     PIC X(08) VALUE SPACES.                  
+       01  T1-FORM-COBRO-PREMIO        PIC X(01) VALUE SPACES.                  
+       01  T1-MONTO-PREMIO             PIC X(09) VALUE ZEROES.                  
+       01  T1-PORC-AFORO               PIC X(06) VALUE ZEROES.                  
+       01  T1-PAIS-ORIGEN              PIC X(03) VALUE 'MX '.                   
+       01  T1-CONTRATO                 PIC X(12) VALUE SPACES.                  
+       01  T1-COMP-MDO-PRIM            PIC X(04) VALUE '0107'.                  
+       01  T1-MEDIO-CONCENTR           PIC X(04) VALUE '0102'.                  
+       01  T1-CALIF-CONTRAP            PIC X(10) VALUE '0000000307'.            
+       01  T1-CVE-CALIF                PIC X(06) VALUE '025015'.                
+      *                                                                         
+       01  WSC-0                       PIC X(01) VALUE '0'.                     
+       01  WSC-1                       PIC X(01) VALUE '1'.                     
+       01  WSC-07                      PIC X(02) VALUE '07'.                    
+       01  WSC-NUM-1                   PIC 9(01) VALUE 1.                       
+       01  WSC-NUM-100                 PIC 9(03) VALUE 100.                     
+       01  WSC-CODIGO-04               PIC 9(01) VALUE 4.                       
+       01  WSC-NUM-521                 PIC 9(03) VALUE 521.                     
+       01  WSC-NUM-621                 PIC 9(03) VALUE 621.                     
+       01  WSC-NUM-627                 PIC 9(03) VALUE 627.                     
+       01  CR-ERROR-ENT-SAL            PIC S9(03)  VALUE +08.                   
+       01  WSC-NP                      PIC X(02) VALUE 'NP'.                    
+       01  WSC-PVF                     PIC X(03) VALUE 'PVF'.                   
+       01 CR-ARCHIVO-VACIO             PIC S9(03)  VALUE +01.                   
+      *                                                                         
+      *----                                                                     
+      *    CIFRAS DE CONTROL                                                    
+      *----                                                                     
+       01  A990-CIF-CTL.                                                        
+            05  A990-CIFRA             PIC 9(09)+.                              
+       01  A999-REG-ESC-ARCH           PIC S9(9)    COMP-3 VALUE 0.             
+       01  A500-REG-LEI-CURSOR         PIC S9(9)    COMP-3 VALUE 0.             
+      *----------------------------------------------------------------*        
+      * DEFINO LOS ACUMULADORES UE UTILIZARA EL PROGRAMA               *        
+      *----------------------------------------------------------------*        
+       01 ACUMULADORES.                                                         
+          05 WSA-LEIDOS                    PIC 9(09) VALUE ZEROES.              
+          05 WSA-GRABADOS-SALIDA           PIC 9(09) VALUE ZEROES.              
+      *-------------------------------------------------------------            
+      *SWITCHES                                                                 
+      *-------------------------------------------------------------            
+       01 SWITCHES.                                                             
+          05 WSS-FS-ENTRADA              PIC X(02)  VALUE '00'.                 
+             88 WSS-OK-ENTRADA                      VALUE '00'.                 
+             88 WSS-EOF-ENTRADA                     VALUE '10'.                 
+      *                                                                         
+          05 SW-FIN-ENTRADA              PIC X.                                 
+             88 FIN-ENTRADA-SI                      VALUE 'S'.                  
+             88 FIN-ENTRADA-NO                      VALUE 'N'.                  
+      *                                                                         
+          05 WSS-FS-SALIDA               PIC X(02)  VALUE '00'.                 
+             88 WSS-OK-SALIDA                       VALUE '00'.                 
+      *                                                                         
+          05 WSS-VAL-DB2                 PIC S9(04) VALUE +0 COMP.              
+             88 WSS-88-DATOS-OK                     VALUE +0.                   
+             88 WSS-88-NO-EXIST                     VALUE +100.                 
+      *                                                                         
+          05 SW-FIN-LECTURA              PIC X(01).                             
+             88 LECTURA-OK                          VALUE 'S'.                  
+             88 LECTURA-NOK                         VALUE 'N'.                  
+      *                                                                         
+          05 SW-EST-CONTR                PIC X(01).                             
+             88 CONTR-IG-OK                         VALUE 'S'.                  
+             88 CONTR-IG-NOK                        VALUE 'N'.                  
+                                                                                
+      *----------------------------------------------------------------*        
+      *                       PROCEDURE-DIVISION                       *        
+      *----------------------------------------------------------------*        
+       PROCEDURE DIVISION.                                                      
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *  0000-CONTROL                                                  *        
+      *----------------------------------------------------------------*        
+       0000-CONTROL.                                                            
+      *                                                                         
+           PERFORM 1000-INICIO                                                  
+           PERFORM 2000-PROCESO                                                 
+           PERFORM 3000-FINAL.                                                  
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *  INICIO EL PROGRAMA                                            *        
+      *----------------------------------------------------------------*        
+       1000-INICIO.                                                             
+      *                                                                         
+           INITIALIZE SWITCHES                                                  
+                      VARIABLES                                                 
+      *                                                                         
+           SET WSS-OK-ENTRADA TO TRUE                                           
+           SET WSS-OK-SALIDA  TO TRUE                                           
+      *                                                                         
+           PERFORM 1001-ABRIR-ARCHIVOS                                          
+           .                                                                    
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *  PARRAFO EN DONDE ABRO LOS ARCHIVOS                            *        
+      *----------------------------------------------------------------*        
+       1001-ABRIR-ARCHIVOS.                                                     
+           OPEN INPUT  ZMACC0U0                                                 
+           IF NOT WSS-OK-ENTRADA                                                
+              MOVE CR-ERROR-ENT-SAL              TO RETURN-CODE                 
+                DISPLAY '***************************************'               
+                DISPLAY '* ERROR AL ABRIR LA DESCARGA OPERASI *'                
+                DISPLAY '* CODIGO DE RETORNO: ' RETURN-CODE                     
+                DISPLAY '***************************************'               
+              PERFORM 9999-ABORTA-SECTION                                       
+           END-IF                                                               
+      *                                                                         
+           OPEN OUTPUT ZMACC0U2                                                 
+           IF NOT WSS-OK-SALIDA                                                 
+              MOVE CR-ERROR-ENT-SAL              TO RETURN-CODE                 
+                DISPLAY '***************************************'               
+                DISPLAY '* ERROR AL ABRIR EL ARCHIVO DE SALIDA *'               
+                DISPLAY '* CODIGO DE RETORNO: ' RETURN-CODE                     
+                DISPLAY '***************************************'               
+              PERFORM 9999-ABORTA-SECTION                                       
+           END-IF                                                               
+           .                                                                    
+      *----------------------------------------------------------------*        
+      *  EMPIEZA EL PROCESO DEL PROGRAMA                               *        
+      *----------------------------------------------------------------*        
+       2000-PROCESO.                                                            
+      *                                                                         
+           PERFORM 2002-LEE-ARCHIVO                                             
+           PERFORM 2003-VALIDO-VACIOS                                           
+                                                                                
+           PERFORM 2100-PROCESO-FILE UNTIL LECTURA-NOK                          
+                                                                                
+           .                                                                    
+      *----------------------------------------------------------------*        
+      *  2002-LEE-ARCHIVO                                              *        
+      *----------------------------------------------------------------*        
+        2002-LEE-ARCHIVO.                                                       
+      *                                                                         
+            READ ZMACC0U0 INTO LAYOUT-ENTRADA                                   
+      *                                                                         
+             EVALUATE TRUE                                                      
+              WHEN WSS-OK-ENTRADA                                               
+                ADD 1                           TO WSA-LEIDOS                   
+      *                                                                         
+                   MOVE WSV-EMISORA-01          TO EMISORA-LE                   
+                   MOVE WSV-SERIE-01            TO SERIE-LE                     
+                   MOVE WSV-ITRANS              TO TIPOPER-LE                   
+      *                                                                         
+                   MOVE T1-YEAR                 TO WS-FECHA1(1:4)               
+                   MOVE T1-MES                  TO WS-FECHA1(5:2)               
+                   MOVE T1-DIA                  TO WS-FECHA1(7:2)               
+      *                                                                         
+               WHEN WSS-EOF-ENTRADA                                             
+                 MOVE 10                        TO WSS-FS-ENTRADA               
+                  SET LECTURA-NOK               TO TRUE                         
+               WHEN OTHER                                                       
+                  MOVE CR-ERROR-ENT-SAL           TO RETURN-CODE                
+                  DISPLAY '***************************************'             
+                  DISPLAY '* ERROR AL LEER EL ARCHIVO OPERASI    *'             
+                  DISPLAY '* CODIGO DE RETORNO: ' RETURN-CODE                   
+                  DISPLAY '***************************************'             
+                  PERFORM 9999-ABORTA-SECTION                                   
+             END-EVALUATE.                                                      
+      *                                                                         
+      *----------------------------------------------------------------*        
+      * 2003-VALIDO-VACIOS                                             *        
+      *----------------------------------------------------------------*        
+       2003-VALIDO-VACIOS.                                                      
+           IF  FIN-ENTRADA-SI                                                   
+              MOVE CR-ARCHIVO-VACIO              TO RETURN-CODE                 
+              DISPLAY '***************************************'                 
+              DISPLAY '* ARCHIVO  DE SOPERASI    ESTA VACIO  *'                 
+              DISPLAY '* CODIGO DE RETORNO: ' RETURN-CODE                       
+              DISPLAY '***************************************'                 
+              PERFORM 2014-ESCRIBE-FILE                                         
+              PERFORM 9999-ABORTA-SECTION                                       
+           END-IF.                                                              
+      *----------------------------------------------------------------*        
+      *  EMPIEZA EL PROCESO DEL PROGRAMA                               *        
+      *----------------------------------------------------------------*        
+       2100-PROCESO-FILE.                                                       
+                                                                                
+             MOVE WSV-EMISORA-01    TO EMISORA-ANT                              
+             MOVE WSV-SERIE-01      TO SERIE-ANT                                
+             MOVE WSV-ITRANS        TO TIPOPER-ANT                              
+      *                                                                         
+           PERFORM 2020-MUEVE-INFORMA-LEI                                       
+      *                                                                         
+             MOVE 0                 TO IMPT-TOT                                 
+             MOVE 0                 TO IMPT-TIT-TOT                             
+             MOVE 0                 TO OPE-TOT                                  
+                                                                                
+           PERFORM 2013-CALCULA-TOTAL UNTIL LLAVE-LEI NOT EQUAL                 
+                                      LLAVE-ANT OR LECTURA-NOK                  
+      *                                                                         
+              IF                                                                
+                 IMPT-TOT     = 0 AND                                           
+                 IMPT-TIT-TOT = 0 AND                                           
+                 OPE-TOT      = 0                                               
+                 CONTINUE                                                       
+              ELSE                                                              
+                PERFORM 2014-ESCRIBE-FILE                                       
+              END-IF                                                            
+           .                                                                    
+      *                                                                         
+      *----------------------------------------------------------------*        
+      * 2020-MUEVE-INFORMA-LEI                                         *        
+      *----------------------------------------------------------------*        
+       2020-MUEVE-INFORMA-LEI.                                                  
+      *                                                                         
+            MOVE EMISORA-ANT        TO T1-CVE-FONDO                             
+            MOVE EMISORA-ANT        TO T1-EMISORA                               
+            MOVE SERIE-ANT          TO T1-SERIE                                 
+            MOVE TIPOPER-ANT        TO T1-TIPO-TRANS                            
+            MOVE WSV-CANT2          TO T1-CANT-TITULOS                          
+            MOVE WSV-CANT1          TO T1-MONTO2-OPERA                          
+            MOVE WSV-FOPERA         TO T1-FLIQ                                  
+      *                                                                         
+           .                                                                    
+      *----------------------------------------------------------------*        
+      * 2013-CALCULA-TOTAL                                             *        
+      *----------------------------------------------------------------*        
+       2013-CALCULA-TOTAL.                                                      
+            MOVE WSV-CANT2          TO T1-CANT-TITULOS                          
+            MOVE WSV-CANT1          TO T1-MONTO2-OPERA                          
+      *                                                                         
+            COMPUTE IMPT-TOT = T1-MONTO2-OPERA + IMPT-TOT                       
+      *                                                                         
+            COMPUTE IMPT-TIT-TOT = T1-CANT-TITULOS + IMPT-TIT-TOT               
+      *                                                                         
+                ADD 1                           TO OPE-TOT                      
+      *                                                                         
+            PERFORM 2002-LEE-ARCHIVO                                            
+            .                                                                   
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *  2014-ESCRIBE-FILE                                             *        
+      *----------------------------------------------------------------*        
+       2014-ESCRIBE-FILE.                                                       
+      *                                                                         
+            MOVE   T1-IDENTIF-MODU       TO    WSV-IDENTIF-MODU                 
+            MOVE   T1-TIP-SOCI           TO    WSV-TIP-SOCI                     
+            MOVE   EMISORA-ANT           TO    WSV-CVE-FONDO                    
+            MOVE   EMISORA-ANT           TO    WSV-EMISORA                      
+            MOVE   SERIE-ANT             TO    WSV-SERIE                        
+            MOVE   ' '                   TO    WSV-SERIE(8:1)                   
+            MOVE   T1-TIP-VAL            TO    WSV-TIP-VAL                      
+            MOVE   T1-CUPON              TO    WSV-CUPON                        
+            MOVE   T1-ISIN               TO    WSV-ISIN                         
+            MOVE   TIPOPER-ANT           TO    WSV-TIPO-TRANS                   
+            MOVE   T1-TIPO-INVER         TO    WSV-TIPO-INVER                   
+            MOVE   T1-NUM-CONSECUTIVO    TO    WSV-NUM-CONSECUTIVO              
+            MOVE   IMPT-TIT-TOT          TO    WSV-CANT-TITULOS                 
+            MOVE   IMPT-TOT              TO    WSV-MONTO1-OPERA                 
+            MOVE   IMPT-TOT              TO    WSV-MONTO2-OPERA                 
+            MOVE   T1-INTERES-OPERA      TO    WSV-INTERES-OPERA                
+            MOVE   T1-TASA               TO    WSV-TASA                         
+            MOVE   T1-TIPO-TASA-RT       TO    WSV-TIPO-TASA-RT                 
+            MOVE   T1-TASA-REF-RT        TO    WSV-TASA-REF-RT                  
+            MOVE   T1-FVENC-RT-PTM       TO    WSV-FVENC-RT-PTM                 
+            MOVE   WS-FECHA1             TO    WSV-FLIQ                         
+            MOVE   T1-COMISION           TO    WSV-COMISION                     
+            MOVE   T1-IMP-COMISION       TO    WSV-IMP-COMISION                 
+            MOVE   T1-INTERMEDIARIO      TO    WSV-INTERMEDIARIO                
+            MOVE   T1-HORA               TO    WSV-HORA                         
+            MOVE   T1-FORM-COBRO-PREMIO  TO    WSV-FORM-COBRO-PREMIO            
+            MOVE   T1-MONTO-PREMIO       TO    WSV-MONTO-PREMIO                 
+            MOVE   T1-PORC-AFORO         TO    WSV-PORC-AFORO                   
+            MOVE   T1-PAIS-ORIGEN        TO    WSV-PAIS-ORIGEN                  
+            MOVE   T1-CONTRATO           TO    WSV-CONTRATO                     
+            MOVE   OPE-TOT               TO    WSV-VOL-RECOMPRA                 
+            MOVE   OPE-TOT               TO    WSV-VOL-SUSC                     
+            MOVE   T1-COMP-MDO-PRIM      TO    WSV-COMP-MDO-PRIM                
+            MOVE   T1-MEDIO-CONCENTR     TO    WSV-MEDIO-CONCENTR               
+            MOVE   T1-CALIF-CONTRAP      TO    WSV-CALIF-CONTRAP                
+            MOVE   T1-CVE-CALIF          TO    WSV-CVE-CALIF                    
+                                                                                
+              EVALUATE WSV-TIPO-TRANS                                           
+                WHEN 'C'                                                        
+                MOVE 0        TO WSV-VOL-SUSC                                   
+                WHEN 'V'                                                        
+                MOVE 0        TO WSV-VOL-RECOMPRA                               
+              END-EVALUATE                                                      
+                                                                                
+              PERFORM 2040-GRABAR-FINAL                                         
+            .                                                                   
+      *----------------------------------------------------------------*        
+      *  ESCRIBIR DATOS SALIDA PARA EL REPORTE DE OPERASI              *        
+      *----------------------------------------------------------------*        
+       2040-GRABAR-FINAL.                                                       
+      *                                                                         
+               WRITE S1-FILE-SALIDA FROM  WS-LAYOUT-COVAF                       
+               MOVE 0                 TO IMPT-TOT                               
+               MOVE 0                 TO IMPT-TIT-TOT                           
+               MOVE 0                 TO OPE-TOT                                
+            .                                                                   
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *  3000-FINAL                                                    *        
+      *----------------------------------------------------------------*        
+       3000-FINAL.                                                              
+      *                                                                         
+           PERFORM 3010-CERRAR-ARCHIVO                                          
+           PERFORM 9777-STOP-RUN.                                               
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *  AQUI SE CIERRAN LOS ARCHIVOS                                  *        
+      *----------------------------------------------------------------*        
+       3010-CERRAR-ARCHIVO.                                                     
+      *                                                                         
+           CLOSE ZMACC0U0                                                       
+           IF NOT WSS-OK-ENTRADA                                                
+              MOVE CR-ERROR-ENT-SAL              TO RETURN-CODE                 
+              DISPLAY '*****************************************'               
+              DISPLAY '* ERROR AL CERRAR EL ARCHIVO OPERASI    *'               
+              DISPLAY '* CODIGO DE RETORNO: ' RETURN-CODE                       
+              DISPLAY '*****************************************'               
+              PERFORM 9999-ABORTA-SECTION                                       
+           END-IF                                                               
+                                                                                
+           CLOSE ZMACC0U2                                                       
+           IF NOT WSS-OK-SALIDA                                                 
+              MOVE CR-ERROR-ENT-SAL              TO RETURN-CODE                 
+              DISPLAY '***************************************'                 
+              DISPLAY '* ERROR AL CERRAR EL ARCHIVO SALIDA  *'                  
+              DISPLAY '* CODIGO DE RETORNO: ' RETURN-CODE                       
+              DISPLAY '***************************************'                 
+              PERFORM 9999-ABORTA-SECTION                                       
+           END-IF.                                                              
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *  9777-STOP-RUN                                               *          
+      *----------------------------------------------------------------*        
+       9777-STOP-RUN.                                                           
+      *                                                                         
+           STOP RUN.                                                            
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *  9999-ABORTA-SECTION                                         *          
+      *----------------------------------------------------------------*        
+       9999-ABORTA-SECTION.                                                     
+      *                                                                *        
+           MOVE CR-ARCHIVO-VACIO           TO RETURN-CODE                       
+           DISPLAY '*----------------------------------------------*'           
+           DISPLAY '* ERROR EN PROGRAMA           :   ' WSC-PROGRAMA            
+           DISPLAY '*----------------------------------------------*'           
+           DISPLAY 'CODIGO DE RETORNO             :   ' RETURN-CODE             
+           DISPLAY 'CODIGO DE RETORNO             :   ' WSV-CODIGO-RET          
+           DISPLAY '*----------------------------------------------*'           
+      *                                                                         
+      *                                                                         
+           PERFORM 9777-STOP-RUN.                                               
+      *                                                                *        
+      *----------------------------------------------------------------*        
+      *                FIN DEL CODIGO DEL PROGRAMA                     *        
+      *----------------------------------------------------------------*        
