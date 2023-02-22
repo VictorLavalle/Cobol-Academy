@@ -1,5 +1,11 @@
 # Algorithm Example
 
+**Definition of Algorithm**
+
+It is a clearly and unambiguously written procedure that guarantee its completion in a finite time and provide a response or indicate that there is no solution.
+
+
+
 **Algorithm for Writing Computer Programs.**
 
 1. Define the problem.
