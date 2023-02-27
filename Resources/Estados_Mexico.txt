@@ -1,0 +1,37 @@
+05 WS-ESTADO              PIC X(3)          VALUE SPACES.                  
+             88 WS-AGUASCALIENTES                           VALUE 'AGS'.                  
+             88 WS-BAJA-CALIFORNIA-NORTE                    VALUE 'BCN'.
+			 88 WS-BAJA-CALIFORNIA-SUR                      VALUE 'BCS'.
+			 88 WS-CAMPECHE                                 VALUE 'CAM'.
+			 88 WS-CHIAPAS                                  VALUE 'CHS'.
+			 88 WS-CDMX                                     VALUE 'CDM'.
+			 88 WS-CHIHUAHUA                                VALUE 'CHI'.
+			 88 WS-COAHUILA                                 VALUE 'COA'.
+			 88 WS-COLIMA                                   VALUE 'COL'.
+			 88 WS-DURANGO                                  VALUE 'DGO'.
+			 88 WS-EDOMEX                                   VALUE 'EDO'.
+			 88 WS-GUANAJUATO                               VALUE 'GTO'.
+			 88 WS-GUERRERO                                 VALUE 'GUE'.
+			 88 WS-HIDALGO                                  VALUE 'HID'.
+			 88 WS-JALISCO                                  VALUE 'JAL'.
+			 88 WS-MICHOACAN                                VALUE 'MIC'.
+			 88 WS-MORELOS                                  VALUE 'MOR'.
+			 88 WS-NAYARIT                                  VALUE 'NAY'.
+			 88 WS-NUEVO-LEON                               VALUE 'NLE'.
+			 88 WS-OAXACA                                   VALUE 'OAX'.
+			 88 WS-PUEBLA                                   VALUE 'PUE'.
+			 88 WS-QUERETARO                                VALUE 'QRO'.
+			 88 WS-QUINTANA-ROO                             VALUE 'QTO'.
+			 88 WS-SAN-LUIS-POTOSI                          VALUE 'SLP'.
+			 88 WS-SINALOA                                  VALUE 'SIN'.
+			 88 WS-SONORA                                   VALUE 'SON'.
+			 88 WS-TABASCO                                  VALUE 'TAB'.
+			 88 WS-TAMAULIPAS                               VALUE 'TAM'.
+			 88 WS-TLAXCALA                                 VALUE 'TLA'.
+			 88 WS-VERACRUZ                                 VALUE 'VER'.
+			 88 WS-YUCATAN                                  VALUE 'YUC'.
+			 88 WS-ZACATECAS                                VALUE 'ZAC'.
+			 
+SET WS-ZACATECAS TO TRUE
+
+ASIGNA 'ZAC' A WS-ESTADO
