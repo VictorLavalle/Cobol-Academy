@@ -1,0 +1,69 @@
+123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012
+
+  ZM4EHA06                                               BBVA MEXICO, S.A.                                       HOJA :           1
+  SUPERVAL                                                                                                       FECHA: 10/OCT/2022
+                                                       REVERSPLIT DE GFA N 0                                     HORA :    17:56:19
+                     * DEFINITIVO *                                                        CRITERIO TR
+
+ DAR      1.000000 ACCIONES POR CADA      9.000000 ACCIONES
+
+SU  PRO   CONTRATO    N  O  M  B  R  E         T  CANT.RETIRADA   CANT.  GFA                                                       
+CUR MO                                         E                    N                                                            
+SAL TOR                                        N %DIS. TIT ==>      100.000000 %
+                                                 %DIS. CPP ==>      100.000000 %
+
+008  861  816501-7  RAYO ROMERO ANGEL          C             29               3                                                    
+
+
+TOTAL RESERVA DE PROMOTORES (CONTRATO 999761-0):                                                                                   
+
+       0   CLIENTES PROCESADOS        TOTALES:               29               3                                                    
+
+  *******************************************************  FIN DE REPORTE  *******************************************************
+
+
+WRITE   NOMBREAR  FROM   WS-LINEA-01
+WRITE   NOMBREAR  FROM   WS-LINEA-02
+WRITE   NOMBREAR  FROM   WS-LINEA-03
+
+WORKING STORAGE SECTION.
+
+01 WS-LINEA-01.
+   05 FILLER          PIC X(02)     VALUE SPACES.
+   05 WS-NOM-PROG     PIC X(08)     VALUE 'ZM4EHA06'.
+   05 FILLER          PIC X(47)     VALUE SPACES.
+   05 WS-NOM-BANCO    PIC X(17)     VALUE 'BBVA MEXICO, S.A.'.
+   05 FILLER          PIC X(39)     VALUE SPACES.
+   05 WS-HOJA         PIC X(06)     VALUE 'HOJA :'.
+   05 WS-NUM-HOJA     PIC 9(12).
+   05 FILLER          PIC X(01)     VALUE SPACES.
+   
+01 WS-LINEA-02.
+   05 FILLER          PIC X(02)     VALUE SPACES.
+   05 WS-LEYENDA      PIC X(08)     VALUE 'SUPERVAL'.
+   05 FILLER          PIC X(103)    VALUE SPACES.
+   05 WS-FECHA        PIC X(06)     VALUE 'FECHA:'.
+   05 FILLER          PIC X(01)     VALUE SPACES.
+   05 WS-FECHA-ACT.
+      10 WS-DIA       PIC 9(02).
+	  10 WS-DIAG1     PIC X(01)     VALUE '/'.
+	  10 WS-MES       PIC X(03).
+	  10 WS-DIAG2     PIC X(01)     VALUE '/'.
+	  10 WS-AÑO       PIC 9(04).
+   05 FILLER          PIC X(01)     VALUE SPACES.
+	  
+   
+   
+   
+        10        20        30        40        50        60        70        80        90       100       110       120       130
+123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012
+   24-02-2023                                     ACADEMIA   COBOL   XIDERAL   2023                                      13:00:00   
+
+***                                                     REPORTE DE ACTIVIDADES                                                   ***
+====================================================================================================================================
+NOMBRE                                         CARRERA                                        CALIFICACION                           
+====================================================================================================================================
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX    99.9
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX    99.9
+              
+********************* FIN DE REPORTE ***********************************************************************************************

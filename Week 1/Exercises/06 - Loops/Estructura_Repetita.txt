@@ -1,0 +1,12 @@
+           PERFORM UNTIL WSV-CONTADOR = WSC-100
+               ADD  WSC-10 TO WSV-CONTADOR
+               DISPLAY 'Contador es ' WSV-CONTADOR 
+           END-PERFORM      
+
+           PERFORM UNTIL FIN-CICLO
+              ADD  WSC-1 TO WSV-CONTADOR1 
+              IF WSV-CONTADOR1 = WSC-10
+                 SET FIN-CICLO TO TRUE
+              END-IF 
+              DISPLAY 'Otro contador es ' WSV-CONTADOR1 
+           END-PERFORM 
