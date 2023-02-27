@@ -1,0 +1,32 @@
+      *-----------------------
+       IDENTIFICATION DIVISION.
+      *-----------------------
+       PROGRAM-ID. PAYROL00.
+      *-------------
+       DATA DIVISION.
+      *-------------
+       WORKING-STORAGE SECTION.
+      ****** Variables para imprimir
+       77  NOMBRE     PIC X(20).
+       77  LUGAR      PIC X(20).
+       77  SALARIO    PIC 9(3).
+       77  DIAS       PIC 9(3).
+       77  PAGO       PIC 9(5).
+
+      *------------------
+       PROCEDURE DIVISION.
+      *------------------
+      ****** COBOL MOVE statements - Literal Text to Variables
+           MOVE  "Hector Camacho" TO NOMBRE.
+           MOVE "CDMX, Mexico" TO LUGAR.
+           MOVE 20 TO DIAS.
+           MOVE 100 TO SALARIO.
+           COMPUTE PAGO  = DIAS * SALARIO.
+      ****** DISPLAY statements
+           DISPLAY "Nombre : " NOMBRE.
+           DISPLAY "Lugar de residencia : " LUGAR.
+           DISPLAY "Dias trabajados : " DIAS.
+           DISPLAY "Salario Diario : " SALARIO.
+           DISPLAY "Pago semanal : " PAGO.
+           GOBACK.
+
