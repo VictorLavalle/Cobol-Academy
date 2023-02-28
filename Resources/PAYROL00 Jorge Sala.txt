@@ -1,0 +1,44 @@
+      *-----------------------
+       IDENTIFICATION DIVISION.
+      *-----------------------
+       PROGRAM-ID. PAYROL00.
+      *-------------
+       DATA DIVISION.
+      *-------------
+       WORKING-STORAGE SECTION.
+      ****** Variables para imprimir
+       77  WS-NOMBRE      PIC X(20).
+       77  WS-CIUDAD      PIC X(20).
+       77  WS-PAIS        PIC X(20).
+       77  WS-PAGOHORA    PIC 9(03).
+       77  WS-PAGODIA     PIC 9(05).
+       77  WS-HORASDIA    PIC 9(02).
+       77  WS-PAGODIAARG  PIC 9(05).
+
+      ****** Constantes
+       77  WC-EQUIV-ARG          PIC 9(02)   VALUE 10.
+
+      ****** Mascaras
+       77  WS-MASK-PAGO       PIC ZZZZ9.
+       77  WS-MASK-PAGO-ARG   PIC ZZZZ9.
+      *------------------
+       PROCEDURE DIVISION.
+      *------------------
+      ****** COBOL MOVE statements - Literal Text to Variables
+           MOVE  "Jorge Sala" TO WS-NOMBRE.
+           MOVE "Merida" TO WS-CIUDAD.
+           MOVE "Mexico" TO WS-PAIS.
+           MOVE 100 TO WS-PAGOHORA.
+           MOVE 8 TO WS-HORASDIA.
+           COMPUTE WS-PAGODIA  = WS-PAGOHORA * WS-HORASDIA.
+           COMPUTE WS-PAGODIAARG = WS-PAGODIA * WC-EQUIV-ARG.
+           MOVE WS-PAGODIA TO WS-MASK-PAGO.
+           MOVE WS-PAGODIAARG TO WS-MASK-PAGO-ARG.
+      ****** DISPLAY statements
+           DISPLAY "Mi nombre es : " WS-NOMBRE.
+           DISPLAY "Mi ciudad es : " WS-CIUDAD.
+           DISPLAY "Mi pais es   : " WS-PAIS.
+           DISPLAY "Al dia gano  : " WS-MASK-PAGO.
+           DISPLAY "Mi dia en pesos argentinos es : " WS-MASK-PAGO-ARG.
+           GOBACK.
+

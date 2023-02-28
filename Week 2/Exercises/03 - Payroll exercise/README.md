@@ -54,6 +54,10 @@ Teniendo en cuenta las siguientes cuestiones técnicas:
 
 
 
+
+
+
+
 ## Resultados
 
 ### Código Fuente
@@ -118,15 +122,15 @@ Teniendo en cuenta las siguientes cuestiones técnicas:
 
 
       ****** Calculo de ISR
-           COMPUTE WSV-IMP-ISR =(WSV-SAL-MES-BRUT * WSC-IVA)
+           COMPUTE WSV-IMP-ISR =(WSV-SAL-MES-BRUT * WSC-IVA).
 
 
       ***** Calculo de IMSS
            COMPUTE WSV-IMP-IMSS-RET =
-              (WSV-SAL-MES-BRUT * WSC-PERC-IMSS-RET)
+              (WSV-SAL-MES-BRUT * WSC-PERC-IMSS-RET).
 
            COMPUTE WSV-IMP-IMSS-VIV =
-              (WSV-SAL-MES-BRUT * WSC-PERC-IMSS-VIV)
+              (WSV-SAL-MES-BRUT * WSC-PERC-IMSS-VIV).
 
 
       ***** Calculo de salario mensual neto
