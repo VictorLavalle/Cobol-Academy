@@ -1,0 +1,107 @@
+      *-----------------------
+       IDENTIFICATION DIVISION.
+      *-----------------------
+       PROGRAM-ID.    CBL0001
+       AUTHOR.        Hector.
+      *--------------------
+       ENVIRONMENT DIVISION.
+      *--------------------
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT PRINT-LINE ASSIGN TO PRTLINE.
+           SELECT ACCT-REC   ASSIGN TO ACCTREC.
+      *-------------
+       DATA DIVISION.
+      *-------------
+       FILE SECTION.
+       FD  PRINT-LINE RECORDING MODE F.
+       01  PRINT-REC.
+           05  ACCT-ID-S           PIC X(8).
+           05  NOMBRE-S            PIC X(15).
+           05  ACCT-SALDO-EUR-S    PIC $$,$$$,$$9.99.
+           05  CIUDAD-S            PIC X(20).
+      *Este es el archivo de entrada
+       FD  ACCT-REC RECORDING MODE F.
+       01  ACCT-FIELDS.
+           05  ACCT-ID            PIC X(8).
+           05  ACCT-LIMITE        PIC S9(7)V99 COMP-3.
+           05  ACCT-SALDO         PIC S9(7)V99 COMP-3.
+           05  APELLIDO-P         PIC X(20).
+           05  NOMBRE             PIC X(15).
+           05  DIRECCION.
+               10  CALLE          PIC X(25).
+               10  CIUDAD         PIC X(20).
+               10  ESTADO         PIC X(15).
+           05  RESERVED           PIC X(7).
+           05  COMENTARIOS        PIC X(50).
+      *
+       WORKING-STORAGE SECTION.
+       01 FLAGS.
+         05 BANDERA-FILE            PIC X VALUE SPACE.
+               88  FIN-FILE           VALUE 'Y'.
+               88  NO-FIN-FILE        VALUE 'N'.
+      ****** VARIABLES
+       77  WSV-ACCT-SALDO-F         PIC 9(07)V9(02).
+       77  WSV-ACCT-SALDO-S         PIC 9(07)V9(02).
+       77  WSV-NUM-COCIENTE         PIC 9(10).
+       77  WSV-NUM-RESTO            PIC 9(10).
+      ****** CONSTANTES
+       77  WSC-EUR-A-USD            PIC 9(01)V9(02) VALUE 1.06.
+       77  WSC-NUM-REG              PIC 9(10) VALUE 21.
+       77  WSC-NUM-PAR              PIC 9(10) VALUE 2.
+      ****** ACUMULADORES
+       77  WSV-INDICE               PIC 9(11).
+      *------------------
+       PROCEDURE DIVISION.
+      *------------------
+      ****** INICIALIZAR VARIABLES    
+       ABRO-ARCHIVOS.
+           OPEN INPUT  ACCT-REC.
+           OPEN OUTPUT PRINT-LINE.
+      *
+       PROCESO-PRINCIPAL.
+           SET NO-FIN-FILE TO TRUE
+           PERFORM INICIALIZA-SECTION
+           PERFORM LEE-ARCHIVO
+           PERFORM UNTIL FIN-FILE
+               PERFORM CAMBIO-MONEDA
+               ADD 1           TO WSV-INDICE
+               IF WSV-INDICE < WSC-NUM-REG 
+                  Divide WSC-NUM-PAR Into WSV-INDICE Giving, 
+                  WSV-NUM-COCIENTE Remainder WSV-NUM-RESTO
+                  IF WSV-NUM-RESTO = ZEROES
+                    PERFORM ESCRIBO-ARCHIVO
+                  END-IF
+               END-IF
+               PERFORM LEE-ARCHIVO
+           END-PERFORM.
+      *
+       INICIALIZA-SECTION.
+           MOVE ZEROES     TO   WSV-ACCT-SALDO-F
+                                WSV-ACCT-SALDO-S
+                                WSV-NUM-COCIENTE
+                                WSV-NUM-RESTO
+                                WSV-INDICE. 
+      *
+       CIERRO-Y-ACABO.
+           CLOSE ACCT-REC.
+           CLOSE PRINT-LINE.
+           GOBACK.
+      *
+       LEE-ARCHIVO.
+           READ ACCT-REC
+               AT END 
+                  SET FIN-FILE TO TRUE
+           END-READ.
+      *
+       CAMBIO-MONEDA.
+           MOVE ACCT-SALDO TO WSV-ACCT-SALDO-S
+           COMPUTE WSV-ACCT-SALDO-F = WSV-ACCT-SALDO-S / WSC-EUR-A-USD.
+      *
+       ESCRIBO-ARCHIVO.
+           MOVE ACCT-ID            TO  ACCT-ID-S.
+           MOVE NOMBRE             TO  NOMBRE-S.
+           MOVE WSV-ACCT-SALDO-F   TO ACCT-SALDO-EUR-S.
+           MOVE CIUDAD             TO  CIUDAD-S.
+           WRITE PRINT-REC.
+      *
