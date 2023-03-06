@@ -1,0 +1,208 @@
+       IDENTIFICATION DIVISION.                                                 
+       PROGRAM-ID. ZM3CAN01.                                                    
+       AUTHOR. DYD SIVA-MUV.                                                    
+       DATE-WRITTEN. MAYO 2022.                                                 
+       DATE-COMPILED.                                                           
+      *                                                                         
+      ******************************************************************        
+      *                                                                *        
+      *        " S I V A   -    M U L T I E M P R E S A S"             *        
+      *                                                                *        
+      * OBJETIVO: QUITA LOS ESPACIOS QUE VIENEN EL CAMPO DE TOTAL EN   *        
+      *           EL ARCHIVO DE CANCELACION                            *        
+      *                                                                *        
+      ******************************************************************        
+      *----------------------------------------------------------------*        
+      *---------------------- LOG DE MODIFICACIONES -------------------*        
+      *----------------------------------------------------------------*        
+      *    MARCA       AUTOR     FECHA                DESCRIPCION      *        
+      *----------------------------------------------------------------*        
+      ******************************************************************        
+      *                                                                         
+       ENVIRONMENT DIVISION.                                                    
+       CONFIGURATION SECTION.                                                   
+       SOURCE-COMPUTER. IBM-3090.                                               
+       OBJECT-COMPUTER. IBM-3090.                                               
+      *                                                                         
+       INPUT-OUTPUT SECTION.                                                    
+       FILE-CONTROL.                                                            
+      *                                                                         
+           SELECT ENTRADA         ASSIGN   TO ENTRADA                           
+                                  FILE STATUS IS WSS-FS-ENTRADA.                
+                                                                                
+           SELECT SALIDA          ASSIGN   TO SALIDA                            
+                                  FILE STATUS IS WSS-FS-SALIDA.                 
+                                                                                
+      ******************************************************************        
+      *   DATA DIVISION                                                *        
+      ******************************************************************        
+       DATA DIVISION.                                                           
+       FILE SECTION.                                                            
+                                                                                
+       FD  ENTRADA                                                              
+           LABEL RECORD IS STANDARD                                             
+           RECORDING MODE IS F                                                  
+           BLOCK CONTAINS 0  RECORDS                                            
+           DATA RECORD   IS  REG-ENTRADA                                        
+           RECORD CONTAINS 182 CHARACTERS.                                      
+       01  REG-ENTRADA                 PIC  X(182).                             
+      *                                                                         
+       FD  SALIDA                                                               
+           LABEL RECORD IS STANDARD                                             
+           RECORDING MODE IS F                                                  
+           BLOCK CONTAINS 0  RECORDS                                            
+           DATA RECORD   IS  REG-SALIDA                                         
+           RECORD CONTAINS 143 CHARACTERS.                                      
+       01  REG-SALIDA                  PIC  X(143).                             
+      *                                                                         
+      ******************************************************************        
+      *  WORKING STORAGE SECTION                                       *        
+      ******************************************************************        
+       WORKING-STORAGE SECTION.                                                 
+       01 SWTICH.                                                               
+          05 WSS-FS-ENTRADA                 PIC X(02).                          
+             88 WSS-FS-ENTRADA-OK                 VALUE '00'.                   
+             88 WSS-FS-ENTRADA-EOF                VALUE '10'.                   
+                                                                                
+          05 WSS-FS-SALIDA                  PIC X(02).                          
+             88 WSS-FS-SALIDA-OK                  VALUE '00'.                   
+                                                                                
+          05 WSS-ARCHIVO-01                 PIC X(02).                          
+             88 WSS-ARCHIVO-01-OK                 VALUE '00'.                   
+             88 WSS-ARCHIVO-01-EOF                VALUE '10'.                   
+      *                                                                         
+       01 CONSTANTES.                                                           
+          05 WSC-16                         PIC X(02) VALUE '16'.               
+          05 WSC-PROGRAMA                   PIC X(08) VALUE 'ZM3CAN01'.         
+                                                                                
+       01 VARIABLES.                                                            
+          05 WSV-IN1                        PIC 9(03).                          
+          05 WSV-IN2                        PIC 9(03).                          
+          05 WSV-ENTRADA.                                                       
+             10 WSV-DATOS                   PIC X(143).                         
+             10 FILLER                      PIC X(39).                          
+          05 WSV-SALIDA                     PIC X(143).                         
+          05 WSV-NUM-EDIT                   PIC ZZZ,ZZZ,ZZ9.                    
+                                                                                
+       01 ACUMULADORES.                                                         
+          05 WSA-LEIDOS                     PIC 9(09).                          
+          05 WSA-ESCRITOS                   PIC 9(09).                          
+                                                                                
+       01 TABLAS.                                                               
+          05 WST-REGISTRO-IN.                                                   
+             10 WST-CARAC-IN     OCCURS 143 TIMES PIC X(01).                    
+          05 WST-REGISTRO-OUT.                                                  
+             10 WST-CARAC-OUT    OCCURS 143 TIMES PIC X(01).                    
+                                                                                
+      ******************************************************************        
+      *  PROCEDURE DIVISION                                                     
+      ******************************************************************        
+       PROCEDURE DIVISION.                                                      
+      *                                                                         
+       000000-CONTROL.                                                          
+           PERFORM 100000-INICIO                                                
+           PERFORM 200000-PROCESO                                               
+           PERFORM 300000-FINAL.                                                
+      *                                                                         
+      ******************************************************************        
+       100000-INICIO.                                                           
+                                                                                
+           INITIALIZE ACUMULADORES                                              
+                      VARIABLES                                                 
+                                                                                
+           SET WSS-ARCHIVO-01-OK            TO TRUE                             
+                                                                                
+           OPEN INPUT ENTRADA                                                   
+           OPEN OUTPUT SALIDA                                                   
+           .                                                                    
+      *                                                                         
+      ******************************************************************        
+       200000-PROCESO.                                                          
+                                                                                
+           PERFORM 200100-LEE-ENTRADA                                           
+                                                                                
+           PERFORM UNTIL WSS-ARCHIVO-01-EOF                                     
+              MOVE 1                        TO WSV-IN1                          
+                                               WSV-IN2                          
+              PERFORM UNTIL WSV-IN1 > 143                                       
+                  IF WST-CARAC-IN(WSV-IN1) NOT = SPACES AND LOW-VALUES          
+                     MOVE WST-CARAC-IN(WSV-IN1) TO                              
+                                            WST-CARAC-OUT(WSV-IN2)              
+                     ADD 1                  TO WSV-IN2                          
+                  END-IF                                                        
+                  ADD 1                     TO WSV-IN1                          
+              END-PERFORM                                                       
+              MOVE WST-REGISTRO-OUT         TO WSV-SALIDA                       
+              PERFORM 200200-ESCRIBE-SALIDA                                     
+              PERFORM 200100-LEE-ENTRADA                                        
+           END-PERFORM.                                                         
+                                                                                
+      ******************************************************************        
+       200100-LEE-ENTRADA.                                                      
+                                                                                
+           INITIALIZE WSV-ENTRADA                                               
+                      WST-REGISTRO-IN                                           
+                                                                                
+           READ ENTRADA                    INTO WSV-ENTRADA                     
+                                                                                
+           EVALUATE TRUE                                                        
+              WHEN WSS-FS-ENTRADA-OK                                            
+                 ADD 1                      TO WSA-LEIDOS                       
+                 MOVE WSV-DATOS             TO WST-REGISTRO-IN                  
+                 MOVE SPACES                TO WST-REGISTRO-OUT                 
+              WHEN WSS-FS-ENTRADA-EOF                                           
+                 SET WSS-ARCHIVO-01-EOF     TO TRUE                             
+              WHEN OTHER                                                        
+                 DISPLAY '*****************************************'            
+                 DISPLAY '-- PROGRAMA : ZM3CAN01                 --'            
+                 DISPLAY '-- ERROR AL LEER ARCHIVO DE ENTRADA    --'            
+                 DISPLAY '-- FILE ESTATUS : ' WSS-FS-ENTRADA                    
+                 PERFORM 900000-ABORTA                                          
+           END-EVALUATE.                                                        
+                                                                                
+      ******************************************************************        
+       200200-ESCRIBE-SALIDA.                                                   
+                                                                                
+           WRITE REG-SALIDA               FROM WSV-SALIDA                       
+                                                                                
+           IF WSS-FS-SALIDA-OK                                                  
+              ADD 1                        TO WSA-ESCRITOS                      
+           ELSE                                                                 
+              DISPLAY '*****************************************'               
+              DISPLAY '-- PROGRAMA : ZM3CAN01                 --'               
+              DISPLAY '-- ERROR AL ESCRIBIR SALIDA            --'               
+              DISPLAY '-- FILE ESTATUS : ' WSS-FS-SALIDA                        
+              PERFORM 900000-ABORTA                                             
+           END-IF.                                                              
+                                                                                
+      ******************************************************************        
+       300000-FINAL.                                                            
+                                                                                
+           CLOSE ENTRADA                                                        
+                 SALIDA                                                         
+                                                                                
+           PERFORM 300100-CIFRAS-CONTROL                                        
+           STOP RUN.                                                            
+                                                                                
+      ******************************************************************        
+       300100-CIFRAS-CONTROL.                                                   
+                                                                                
+           DISPLAY '**********************************************'             
+           DISPLAY '**            PROGRAMA ZM3CAN01             **'             
+           MOVE WSA-LEIDOS                  TO WSV-NUM-EDIT                     
+           DISPLAY ' REG. LEIDOS         : ' WSV-NUM-EDIT                       
+           MOVE WSA-ESCRITOS                TO WSV-NUM-EDIT                     
+           DISPLAY ' REG. ESCRITOS       : ' WSV-NUM-EDIT.                      
+                                                                                
+      ******************************************************************        
+       900000-ABORTA.                                                           
+                                                                                
+           MOVE  '16'                      TO  RETURN-CODE                      
+           DISPLAY 'TERMINACION ANORMAL DEL PROGRAMA'                           
+           PERFORM 300100-CIFRAS-CONTROL                                        
+      *                                                                         
+           STOP RUN.                                                            
+      *                                                                         
+      *****************************************************************         
+      *    FIN PROGRAMA ZM3Can01                                      *         
+      *****************************************************************         

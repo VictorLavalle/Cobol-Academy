@@ -1,0 +1,91 @@
+      *-----------------------
+       IDENTIFICATION DIVISION.
+      *-----------------------
+       PROGRAM-ID.    CBL0001
+       AUTHOR.        Hanna.
+       DATE-WRITTEN   FEBRERO 2023.
+      *--------------------
+       ENVIRONMENT DIVISION.
+      *--------------------
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT PRINT-LINE ASSIGN TO PRTLINE.
+           SELECT ACCT-REC   ASSIGN TO ACCTREC.
+      *-------------
+       DATA DIVISION.
+      *-------------
+       FILE SECTION.
+       FD  PRINT-LINE RECORDING MODE F.
+       01  PRINT-REC.
+           05  ACCT-ID-S          PIC X(10).
+           05  NOMBRE-S           PIC X(15).
+           05  EUROS-S            PIC $$,$$$,$$9.99.
+           05  CIUDAD-S           PIC X(50).
+           
+      *Este es el archivo de entrada
+       FD  ACCT-REC RECORDING MODE F.
+       01  ACCT-FIELDS.
+           05  ACCT-ID            PIC X(8).
+           05  ACCT-LIMITE        PIC S9(7)V99 COMP-3.
+           05  ACCT-SALDO         PIC S9(7)V99 COMP-3.
+           05  APELLIDO-P         PIC X(20).
+           05  NOMBRE             PIC X(15).
+           05  DIRECCION.
+               10  CALLE          PIC X(25).
+               10  CIUDAD         PIC X(20).
+               10  ESTADO         PIC X(15).
+           05  RESERVED           PIC X(7).
+           05  COMENTARIOS        PIC X(50).
+      *
+       WORKING-STORAGE SECTION.
+       01 FLAGS.
+         05 BANDERA-FILE           PIC X VALUE SPACE.
+               88  FIN-FILE        VALUE 'Y'.
+               88  NO-FIN-FILE     VALUE 'N'.
+
+       01  VARIABLES-CONSTANTES.
+         05  WSC-EUROS             PIC 9(5)V99  VALUE 1.06.
+         05  CONTADOR              PIC 9(02)    VALUE 0.
+         05  WSV-RES               PIC 9(05).
+         05  RESTO                 PIC 9(10)    VALUE 0.
+         05  WSC-PAR               PIC 9(05)    VALUE 2.
+
+      *------------------
+       PROCEDURE DIVISION.
+      *------------------
+       ABRO-ARCHIVOS.
+           OPEN INPUT  ACCT-REC.
+           OPEN OUTPUT PRINT-LINE.
+      *
+       PROCESO-PRINCIPAL.
+           PERFORM LEE-ARCHIVO
+           PERFORM UNTIL CONTADOR = 20 
+              ADD 1 TO CONTADOR
+           PERFORM LEE-ARCHIVO 
+             DIVIDE CONTADOR BY WSC-PAR 
+             GIVING WSV-RES REMAINDER RESTO 
+                 IF RESTO = 0
+                    PERFORM ESCRIBO-ARCHIVO
+                 END-IF
+           END-PERFORM.
+      *
+       CIERRO-Y-ACABO.
+           CLOSE ACCT-REC.
+           CLOSE PRINT-LINE.
+           GOBACK.
+      *
+       LEE-ARCHIVO.
+           READ ACCT-REC
+               AT END
+                  SET FIN-FILE TO TRUE
+           END-READ.
+      *
+       ESCRIBO-ARCHIVO.
+           MOVE ACCT-ID      TO  ACCT-ID-S.
+           MOVE NOMBRE       TO  NOMBRE-S.
+           MOVE ACCT-SALDO   TO  EUROS-S.
+           MOVE CIUDAD       TO  CIUDAD-S.
+           WRITE PRINT-REC.
+      *
+      DOLAR-EURO.
+           COMPUTE ACCT-SALDO = ACCT-SALDO * WSC-EUROS.

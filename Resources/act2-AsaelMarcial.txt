@@ -1,0 +1,153 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.     PAYROL00.
+       AUTHOR.         ASAEL MARCIAL GRAJALES.
+       DATE-WRITTEN    FEBRERO 2022.
+      *                                                                         
+      ******************************************************************        
+      *                                                                *        
+      *        " C O B O L - A C A D E M Y - B Y - X I D E R A L"      *        
+      *                                                                *        
+      * OBJETIVO: CALCULA LOS IMPUESTOS, SUELDOS Y PRIMA VACACIONAL    *        
+      *           DE ACUERDO A LAS HORAS TRABAJADAS                    *        
+      *                                                                *        
+      ******************************************************************
+      *
+       DATA DIVISION.
+      *                                                                         
+      ******************************************************************        
+      *  WORKING STORAGE SECTION                                       *        
+      ******************************************************************
+       WORKING-STORAGE SECTION.
+       
+       01 CONSTANTES.
+           05 WSC-SAL-BRT-HRA      PIC 9(10).
+           05 WSC-HORAS            PIC 9(02).
+           05 WSC-DIAS-HABILES     PIC 9(02).
+           05 WSC-ISR              PIC 9(01)V99.
+           05 WSC-IMMS             PIC 9(01)V999.
+           05 WSC-VIV              PIC 9(01)V999.
+           05 WSC-VAL-DOLAR        PIC 9(02)V99.
+           05 WSC-PRIM-VAC         PIC 9(01)V99.
+
+       01 VARIABLES.
+           05 WSV-PRIMER-NOMBRE    PIC X(15) VALUE SPACES.
+           05 WSV-SAL-BRT-DIA      PIC 9(10)V99.
+           05 WSV-SAL-BRT-MES      PIC 9(10)V99.
+           05 WSV-SAL-NETO-DIA     PIC 9(10)V99.
+           05 WSV-IMP-DIARIO       PIC 9(10)V99. 
+           05 WSV-IMP-DIARIO-ISR   PIC 9(10)V99.
+           05 WSV-IMP-DIARIO-IMS   PIC 9(10)V99.
+           05 WSV-IMP-MENS-VIV     PIC 9(10)V999.
+           05 WSV-PRIMA-VAC        PIC 9(07)V99.
+
+       01 MASCARAS.
+           05 WSV-SAL-NETO-MES     PIC ZZZ,ZZ9.99.
+           05 WSV-IMP-DIARIO-DSP   PIC ZZZ,ZZ9.99.
+           05 WSV-PRIMA-VAC-DSP    PIC ZZZ,ZZ9.99.
+           05 WSV-IMP-MENS-VIV-DSP PIC ZZZ,ZZ9.99.
+
+
+      ******************************************************************        
+      *  PROCEDURE DIVISION                                                     
+      ******************************************************************        
+       PROCEDURE DIVISION.                                                      
+                                                                              
+       000000-CONTROL.                                                          
+           PERFORM 1000-INICIO                                                
+           PERFORM 2000-PROCESO                                               
+           PERFORM 3000-FINAL.                                                
+                                                                              
+      ******************************************************************
+              
+       1000-INICIO.   
+
+      ******************  INICIALIZA CONSTANTES ************************
+           MOVE 200       TO WSC-SAL-BRT-HRA.      
+           MOVE 8         TO WSC-HORAS.
+           MOVE 20        TO WSC-DIAS-HABILES.     
+           MOVE 0.16      TO WSC-ISR.
+           MOVE 0.058     TO WSC-IMMS.
+           MOVE 18.54     TO WSC-VAL-DOLAR.
+           MOVE 0.25      TO WSC-PRIM-VAC.
+           MOVE 0.028     TO WSC-VIV.
+      ******************  INICIALIZA VARIABLES  ************************
+           MOVE "Asael"   TO WSV-PRIMER-NOMBRE.
+                                              
+      ******************************************************************
+              
+       2000-PROCESO.       
+
+           PERFORM 2100-CALCULAR-SAL-BRUTO
+           PERFORM 2200-CALCULAR-IMP-DIARIOS
+           PERFORM 2300-CALCULAR-IMP-MENSUALES
+           PERFORM 2400-CALCULAR-SAL-MEN-NETO
+           PERFORM 2500-CALCULAR-PRIM-VAC
+           
+           .
+
+      ******************************************************************        
+       2100-CALCULAR-SAL-BRUTO.
+
+           MULTIPLY WSC-SAL-BRT-HRA BY WSC-HORAS 
+           GIVING WSV-SAL-BRT-DIA.
+
+           MULTIPLY WSV-SAL-BRT-DIA BY WSC-DIAS-HABILES
+           GIVING WSV-SAL-BRT-MES.
+      
+      ******************************************************************
+       2200-CALCULAR-IMP-DIARIOS.
+      
+           MULTIPLY WSV-SAL-BRT-DIA BY WSC-ISR
+           GIVING WSV-IMP-DIARIO-ISR.
+           
+           MULTIPLY WSV-SAL-BRT-DIA BY WSC-IMMS
+           GIVING WSV-IMP-DIARIO-IMS.
+           
+           ADD WSV-IMP-DIARIO-ISR TO WSV-IMP-DIARIO-IMS
+           GIVING WSV-IMP-DIARIO.
+
+           MOVE WSV-IMP-DIARIO TO WSV-IMP-DIARIO-DSP.
+
+      ******************************************************************
+       2300-CALCULAR-IMP-MENSUALES.
+
+           MULTIPLY WSV-SAL-BRT-MES BY WSC-VIV
+           GIVING WSV-IMP-MENS-VIV.
+           
+           MOVE WSV-IMP-MENS-VIV TO WSV-IMP-MENS-VIV-DSP.
+
+      ******************************************************************        
+       2400-CALCULAR-SAL-MEN-NETO.
+
+           SUBTRACT WSV-IMP-DIARIO FROM WSV-SAL-BRT-DIA
+           GIVING WSV-SAL-NETO-DIA.
+   
+           MULTIPLY WSV-SAL-NETO-DIA BY WSC-DIAS-HABILES
+           GIVING WSV-SAL-NETO-MES.
+
+      ******************************************************************        
+       2500-CALCULAR-PRIM-VAC.
+
+           MULTIPLY WSV-SAL-BRT-MES BY WSC-PRIM-VAC
+           GIVING WSV-PRIMA-VAC.
+
+           DIVIDE WSV-PRIMA-VAC BY WSC-VAL-DOLAR
+           GIVING WSV-PRIMA-VAC.
+
+           MOVE WSV-PRIMA-VAC TO WSV-PRIMA-VAC-DSP.
+           
+
+      ******************************************************************
+              
+       3000-FINAL.                                                            
+                                                                                
+           DISPLAY "Primer nombre                 : " WSV-PRIMER-NOMBRE.
+           DISPLAY "Impuestos diarios son         : " 
+              WSV-IMP-DIARIO-DSP.
+           DISPLAY "Salario mensual Neto es       : " WSV-SAL-NETO-MES.
+           DISPLAY "Mi prima vacacional en dolares: " WSV-PRIMA-VAC-DSP.
+           DISPLAY "Al mes aporto a mi vivienda   : " 
+              WSV-IMP-MENS-VIV-DSP.
+
+           STOP RUN.                                                            
+                                

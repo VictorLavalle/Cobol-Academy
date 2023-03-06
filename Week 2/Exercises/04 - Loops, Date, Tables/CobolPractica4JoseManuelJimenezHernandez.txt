@@ -1,0 +1,104 @@
+      *-----------------------
+       IDENTIFICATION DIVISION.
+      *-----------------------
+       PROGRAM-ID.    CBL0001
+       AUTHOR.        .
+      *--------------------
+       ENVIRONMENT DIVISION.
+      *--------------------
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT PRINT-LINE ASSIGN TO PRTLINE.
+           SELECT ACCT-REC   ASSIGN TO ACCTREC.
+      *-------------
+       DATA DIVISION.
+      *-------------
+       FILE SECTION.
+       FD  PRINT-LINE RECORDING MODE F.
+       01  PRINT-REC.
+           05  WSV-ACCT-ID-S      PIC X(8).
+           05  WSV-NOMBRE-S       PIC X(15).
+           05  MASK-ACCT-SALDO-S   PIC ZZ,ZZZ,ZZ9.99.
+           05  WSV-DIRECCION-S.
+               10  WSV-CIUDAD-S   PIC X(20).
+
+      *Este es el archivo de entrada
+       FD  ACCT-REC RECORDING MODE F.
+       01  ACCT-FIELDS.
+           05  WSV-ACCT-ID            PIC X(8).
+           05  WSV-ACCT-LIMITE        PIC S9(7)V99 COMP-3.
+           05  WSV-ACCT-SALDO         PIC S9(7)V99 COMP-3.
+           05  WSV-APELLIDO-P         PIC X(20).
+           05  WSV-NOMBRE             PIC X(15).
+           05  WSV-DIRECCION.
+               10  WSV-CALLE          PIC X(25).
+               10  WSV-CIUDAD         PIC X(20).
+               10  WSV-ESTADO         PIC X(15).
+           05  WSV-RESERVED           PIC X(7).
+           05  WSV-COMENTARIOS        PIC X(50).
+      *
+       WORKING-STORAGE SECTION.
+       01 CONSTANTES.
+         05 WSC-CONTADOR          PIC 9(2) VALUE 1.
+         05 WSC-DIVISOR           PIC 9(2) VALUE 2.
+         05 WSC-LIMITE            PIC 9(2) VALUE 21.
+         05 WSC-RESIDUO           PIC 9(2) VALUE 0.
+         05 WSC-VALEUR            PIC 9(2)V9(2) VALUE 1.06.
+
+
+       01 VARIABLES.
+         05 WSV-RESIDUO           PIC 9(2).
+         05 WSV-RESULTADO         PIC 9(2).
+
+
+       01 FLAGS.
+         05 BANDERA-FILE        PIC X VALUE SPACE.
+               88  FIN-FILE        VALUE 'Y'.
+               88  NO-FIN-FILE     VALUE 'N'.
+      *------------------
+       PROCEDURE DIVISION.
+      *------------------
+       ABRO-ARCHIVOS.
+           OPEN INPUT  ACCT-REC.
+           OPEN OUTPUT PRINT-LINE.
+      *
+       PROCESO-PRINCIPAL.
+           SET NO-FIN-FILE TO TRUE
+           PERFORM LEE-ARCHIVO
+           PERFORM UNTIL FIN-FILE
+      ***DELIMITA QUE SOLO TRAIGA 20 REGISTROS     
+           IF WSC-CONTADOR < WSC-LIMITE
+           COMPUTE WSV-RESULTADO = WSC-CONTADOR / WSC-DIVISOR
+      ***SACAMOS EL RESIDUO PARA INICIAR LA CONDICION ANIDADA     
+           COMPUTE
+           WSV-RESIDUO = WSC-CONTADOR - (WSV-RESULTADO * WSC-DIVISOR)
+      ***PREGUNTAMOS SI EL RESIDUO ES IGUAL A 0 PARA SABER SI ES PAR     
+             IF WSV-RESIDUO = WSC-RESIDUO
+      ***SI SE CUMPLEN AMBAS CONDICIONES SE ESCRIBE EL REGISTRO       
+               COMPUTE WSV-ACCT-SALDO = WSV-ACCT-SALDO * WSC-VALEUR
+               PERFORM ESCRIBO-ARCHIVO
+             END-IF
+           END-IF
+           ADD 1 TO WSC-CONTADOR
+               PERFORM LEE-ARCHIVO
+           END-PERFORM.
+      *
+       CIERRO-Y-ACABO.
+           CLOSE ACCT-REC.
+           CLOSE PRINT-LINE.
+           GOBACK.
+      *
+       LEE-ARCHIVO.
+           READ ACCT-REC
+               AT END
+                  SET FIN-FILE TO TRUE
+           END-READ.
+      *
+       ESCRIBO-ARCHIVO.
+           MOVE WSV-ACCT-ID      TO  WSV-ACCT-ID-S.
+           MOVE WSV-NOMBRE       TO  WSV-NOMBRE-S.
+           MOVE WSV-ACCT-SALDO   TO  MASK-ACCT-SALDO-S.
+           MOVE WSV-CIUDAD       TO  WSV-CIUDAD-S.
+
+           WRITE PRINT-REC.
+      *

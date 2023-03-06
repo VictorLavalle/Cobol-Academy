@@ -1,0 +1,13 @@
+1. Ordenar ambos archivos según el campo o campos de clave de coincidencia.
+2. Abrir el primer archivo y leer el primer registro.
+3. Abrir el segundo archivo y leer el primer registro.
+4. Mientras ambos archivos tengan registros:
+    a. Si el valor de la clave de coincidencia en el primer archivo es menor que el valor de la clave de coincidencia en el segundo archivo, leer el siguiente registro del primer archivo.
+    b. Si el valor de la clave de coincidencia en el primer archivo es mayor que el valor de la clave de coincidencia en el segundo archivo, leer el siguiente registro del segundo archivo.
+    c. Si los valores de la clave de coincidencia en ambos archivos son iguales:
+        i. Procesar los registros coincidentes según sea necesario.
+        ii. Leer el siguiente registro de ambos archivos.
+5. Cuando se alcanza el final de uno de los archivos, cerrar ese archivo y continuar procesando el otro archivo hasta que se alcance su final.
+6. Cerrar ambos archivos.
+
+Este algoritmo asume que los dos archivos ya han sido ordenados en función del campo o campos de clave de coincidencia para optimizar el proceso de coincidencia. El algoritmo compara el valor de la clave de coincidencia en cada registro de ambos archivos y procesa los registros coincidentes. Continúa este proceso hasta que se alcanza el final de uno de los archivos. Finalmente, cierra ambos archivos.
