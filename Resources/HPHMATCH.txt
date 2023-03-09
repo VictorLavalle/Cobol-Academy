@@ -1,0 +1,142 @@
+      *-----------------------
+       IDENTIFICATION DIVISION.
+      *-----------------------
+       PROGRAM-ID.    HPHMATCH
+       AUTHOR.        BECA.
+      *--------------------
+       ENVIRONMENT DIVISION.
+      *--------------------
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT ENTRADA1   ASSIGN TO ENTRADA1
+                             FILE STATUS IS WS-FS-A1.
+
+           SELECT ENTRADB2   ASSIGN TO ENTRADB2
+                             FILE STATUS IS WS-FS-B2.
+
+           SELECT SALIDAS1   ASSIGN TO SALIDA1
+                             FILE STATUS IS WS-FS-S1.
+
+      *-------------
+       DATA DIVISION.
+      *-------------
+       FILE SECTION.
+
+       FD  ENTRADA1 RECORDING MODE F.
+       01 REG-A1.
+          05 A1-DIGITO       PIC 9(02).
+          05 A1-SECUENCIA    PIC 9(02).
+          05 A1-FOLIO        PIC 9(04).
+          05 A1-RESTO        PIC X(162).
+
+       FD  ENTRADB2 RECORDING MODE F.
+       01 REG-B2.
+          05 B2-DIGITO       PIC 9(02).
+          05 B2-SECUENCIA    PIC 9(02).
+          05 B2-FOLIO        PIC 9(04).
+          05 B2-RESTO        PIC X(162).
+
+       FD  SALIDAS1 RECORDING MODE F.
+       01 REG-SAL.
+          05 SAL-DIGITO      PIC 9(02).
+          05 SAL-SECUENCIA   PIC 9(02).
+          05 SAL-FOLIO       PIC 9(04).
+          05 SAL-RESTO       PIC X(162).
+      *
+       WORKING-STORAGE SECTION.
+       01 FLAGS.
+         05 WS-FS-A1              PIC X(02) VALUE SPACE.
+            88  FILE-A1-OK      VALUE '00'.
+            88  FIN-FILE-A1     VALUE '10'.
+
+         05 WS-FS-B2              PIC X(02) VALUE SPACE.
+            88  FILE-B2-OK      VALUE '00'.
+            88  FIN-FILE-B2     VALUE '10'.
+
+         05 WS-FS-S1              PIC X(02) VALUE SPACE.
+            88  FILE-S1-OK      VALUE '00'.
+            88  FIN-FILE-S1     VALUE '10'.
+
+       01 WS-CONTADORES.
+         05 WS-LEIDOS-A1          PIC 9(04).
+         05 WS-LEIDOS-B2          PIC 9(04).
+         05 WS-ESCRITOS-S1        PIC 9(04).
+
+       01 WS-LLAVES.
+         05 WS-KEY-A1.
+            10 KEY-A1-DIGITO      PIC 9(02).
+            10 KEY-A1-FOLIO       PIC 9(04).
+         05 WS-KEY-B2.
+            10 KEY-B2-DIGITO      PIC 9(02).
+            10 KEY-B2-FOLIO       PIC 9(04).
+
+       PROCEDURE DIVISION.
+      *------------------
+       0000-CONTROL.
+          PERFORM 1000-INICIO
+          PERFORM 2000-PROCESA UNTIL FIN-FILE-A1 AND
+                                     FIN-FILE-B2
+          PERFORM 3000-FIN
+          STOP RUN.
+      *
+       1000-INICIO.
+          PERFORM 1100-INICIALIZAR-VAR
+          PERFORM 1200-ABRIR-ARCHS
+          PERFORM 1300-LEER-ARCH-A1
+          PERFORM 1400-LEER-ARCH-B2.
+      *
+       1100-INICIALIZAR-VAR.
+          INITIALIZE WS-CONTADORES.
+      *
+       1200-ABRIR-ARCHS.
+          OPEN INPUT   ENTRADA1
+                       ENTRADB2
+          OPEN OUTPUT  SALIDAS1.
+      *
+       1300-LEER-ARCH-A1.
+          READ ENTRADA1
+           EVALUATE TRUE
+              WHEN FILE-A1-OK
+                 ADD 1 TO WS-LEIDOS-A1
+                 MOVE A1-DIGITO TO KEY-A1-DIGITO
+                 MOVE A1-FOLIO  TO KEY-A1-FOLIO
+              WHEN FIN-FILE-A1
+                 CONTINUE
+              WHEN OTHER
+                 DISPLAY 'ERROR FILE STATUS A1...'WS-FS-A1
+           END-EVALUATE
+          END-READ.
+      *
+       1400-LEER-ARCH-B2.
+          READ ENTRADB2
+           EVALUATE TRUE
+              WHEN FILE-B2-OK
+                 ADD 1 TO WS-LEIDOS-B2
+                 MOVE B2-DIGITO TO KEY-B2-DIGITO
+                 MOVE B2-FOLIO  TO KEY-B2-FOLIO
+              WHEN FIN-FILE-B2
+                 CONTINUE
+              WHEN OTHER
+                 DISPLAY 'ERROR FILE STATUS B2...'WS-FS-B2
+           END-EVALUATE
+          END-READ.
+      *
+       2000-PROCESA.
+          EVALUATE TRUE
+             WHEN WS-KEY-A1 = WS-KEY-B2
+                PERFORM 2100-ESCRIBIR-SALIDA
+                PERFORM 1300-LEER-ARCH-A1
+                PERFORM 1400-LEER-ARCH-B2
+             WHEN WS-KEY-A1 < WS-KEY-B2
+                PERFORM 1300-LEER-ARCH-A1
+             WHEN WS-KEY-A1 > WS-KEY-B2
+                PERFORM 1400-LEER-ARCH-B2
+          END-EVALUATE.
+      *
+       2100-ESCRIBIR-SALIDA.
+          MOVE REG-A1 TO REG-SAL
+          WRITE SALIDAS1
+      *
+       3000-FIN.
+          PERFORM 3100-CERRAR-ARCHS
+          PERFORM 3200-DESPLEGAR-CIFRAS-CONTROL.
