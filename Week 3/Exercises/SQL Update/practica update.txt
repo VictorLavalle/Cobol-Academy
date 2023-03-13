@@ -77,8 +77,8 @@
           02 ACCT-COMENT        PIC X(50).
 
        01 VARIABLES-UPDATE.
-          02 WS-UPD-MANUEL      PIC X(6) VALUE 'MANUEL'.
-          02 WS-ACCT-ID         PIC X(8) VALUE '17891797'. 
+          02 WS-UPD-NAME      PIC X(6) VALUE 'Victor'.
+          02 WS-ACCT-ID         PIC X(8) VALUE '17891797'.
 
        PROCEDURE DIVISION.
        EMPIEZO-PROGRAMA.
@@ -91,14 +91,14 @@
                 GOBACK.
 
        PROCESO-PRINCIPAL.
-                PERFORM UPDATE-MANUEL
+                PERFORM UPDATE-RECORD
                 PERFORM ABRO-CURSOR
                 PERFORM LEO-CURSOR
                 PERFORM CICLO-CURSOR UNTIL FIN-CURSOR
                 PERFORM CIERRO-CURSOR
                 .
-         
-                
+
+
        CICLO-CURSOR.
                 PERFORM ESCRIBE-REPORTE.
                 PERFORM LEO-CURSOR.
@@ -109,19 +109,19 @@
                 MOVE  ACCT-SALDO   TO  ACCT-SALDO-O.
                 MOVE  ACCT-APEP    TO  ACCT-APEP-O.
                 MOVE  ACCT-NOMBRE  TO  ACCT-NOMBRE-O.
-                MOVE  ACCT-COMENT  TO  ACCT-COMENTS-O. 
+                MOVE  ACCT-COMENT  TO  ACCT-COMENTS-O.
                 WRITE REPREC AFTER ADVANCING 2 LINES.
 
-       EVALUO-SQLCODES.    
+       EVALUO-SQLCODES.
            EVALUATE SQLCODE
               WHEN SQLCODE0
                    SET NO-FIN-CURSOR TO TRUE
               WHEN SQLCODE100
                    SET FIN-CURSOR TO TRUE
-              WHEN OTHER    
+              WHEN OTHER
                    MOVE 'ERROR EN CURSOR' TO UD-ERROR-MESSAGE
-                   STOP RUN 
-           END-EVALUATE.   
+                   STOP RUN
+           END-EVALUATE.
 
        ABRO-CURSOR.
            EXEC SQL
@@ -129,22 +129,24 @@
            END-EXEC.
            PERFORM EVALUO-SQLCODES.
 
-       LEO-CURSOR.    
-           EXEC SQL 
-              FETCH CURTABLA 
+       LEO-CURSOR.
+           EXEC SQL
+              FETCH CURTABLA
               INTO :VARIABLES-HOST
            END-EXEC.
            PERFORM EVALUO-SQLCODES.
 
        CIERRO-CURSOR.
-           EXEC SQL 
-              CLOSE CURTABLA  
+           EXEC SQL
+              CLOSE CURTABLA
            END-EXEC.
            PERFORM EVALUO-SQLCODES.
 
-       UPDATE-MANUEL.
+       UPDATE-RECORD.
            EXEC SQL
               UPDATE Z94473T
-              SET COMMENTS = :WS-UPD-MANUEL
+              SET COMMENTS = :WS-UPD-NAME
               WHERE ACCTNO = :WS-ACCT-ID
-           END-EXEC.    
+           END-EXEC.
+
+
