@@ -1,0 +1,106 @@
+1
+1PAGE    1
+  --******* SQL FOLLOWS
+ ***INPUT STATEMENT:
+    SELECT * FROM Z94474T;
+              +--------------------------------------------------------------------------------------------------------------
+              |  ACCTNO  |    LIMIT     |   BALANCE    |       SURNAME        |     FIRSTN      |         ADDRESS1          |
+              +--------------------------------------------------------------------------------------------------------------
+            1_| 17891797 |    10000.00  |      188.74  | WASHINGTON           | George          | 1 General Dr.             |
+            2_| 17971801 |    10000.00  |     3188.33  | ADAMS                | John            | 2 Harvard Lawyer          |
+            3_| 18011809 |    10000.00  |     7008.13  | JEFFERSON            | Thomas          | 3 Planter St.             |
+            4_| 18091817 |    10000.00  |      503.13  | MADISON              | James           | 4 Good Wife St.           |
+            5_| 18171825 |    10000.00  |    31313.13  | MONROE               | James           | 5 Honest Ln.              |
+            6_| 18251829 |    10000.00  |    31250.33  | ADAMS II             | John Quincy     | 6 Harvard Lawyer          |
+            7_| 18291837 |    10000.00  |     3318.30  | JACKSON              | Andrew          | 7 Brawler St.             |
+            8_| 18371841 |    10000.00  |      325.00  | VAN BUREN            | Martin          | 8 Dutch Rd.               |
+            9_| 18411841 |    10000.00  |      313.50  | HARRISON             | William Henry   | 9 Medicine St.            |
+           10_| 18411845 |    10000.00  |      121.65  | TYLER                | John            | 10 Accidency Ln.          |
+           11_| 18451849 |    10000.00  |      314.05  | POLK                 | James           | 11 Strong Way             |
+           12_| 18491850 |    10000.00  |      828.20  | TAYLOR               | Zachary         | 12 Army Rd.               |
+           13_| 18501853 |    10000.00  |      373.10  | FILLMORE             | Millard         | 13 American Dream St.     |
+           14_| 18531857 |    10000.00  |      315.07  | PIERCE               | Franklin        | 14 Lost Son               |
+           15_| 18571861 |    10000.00  |        7.90  | BUCHANAN             | James           | 15 Debater Rd.            |
+           16_| 18611865 |   100000.00  |      313.13  | LINCOLN              | Abraham         | 16 Civil War Ln.          |
+           17_| 18651869 |   100000.00  |      603.14  | JOHNSON              | Andrew          | 17 Ruthless Rd.           |
+           18_| 18691877 |   100000.00  |    32318.30  | GRANT                | Ulysses S.      | 18 Bewildered St.         |
+           19_| 18771881 |   100000.00  |     5860.55  | HAYES                | Rutherford B.   | 19 No Booze St.           |
+           20_| 18811881 |   100000.00  |     5600.27  | GARFIELD             | James           | 20 Professor Ln.          |
+           21_| 18811885 |   100000.00  |    31070.23  | ARTHUR               | Chester         | 21 Teacher Ln.            |
+           22_| 18851889 |   100000.00  |    99313.10  | CLEVELAND            | Grover          | 22 Focused St.            |
+           23_| 18891893 |   100000.00  |     5003.13  | HARRISON II          | Benjamin        | 23 Little Ben Ln.         |
+           24_| 18931897 |   100000.00  |    40050.24  | CLEVELAND II         | Grover          | 24 Imback Rd.             |
+           25_| 18971901 |   100000.00  |    31950.13  | MCKINLEY             | William         | 25 Tariff Expert St.      |
+           26_| 19011909 |  1000000.00  |   781319.43  | ROOSEVELT            | Theodore        | 26 Young St.              |
+           27_| 19091913 |  1000000.00  |    40199.73  | TAFT                 | William H.      | 27 Middle Way             |
+           28_| 19131921 |  1000000.00  |    84033.13  | WILSON               | Woodrow         | 28 World War I St.        |
+           29_| 19211923 |  1000000.00  |    11829.27  | HARDING              | Warren          |29 Phrases Rd.            |
+           30_| 19231929 |  1000000.00  |    10619.20  | COOLIDGE             | Calvin          | 30 Practical Ln.          |
+           31_| 19291933 |  1000000.00  |    31318.33  | HOOVER               | Herbert         | 31 Engineer St.           |
+           32_| 19331945 |  5000000.00  |    31310.23  | ROOSEVELT II         | Franklin D.     | 32 Great Depression St.   |
+           33_| 19451953 |  5000000.00  |    60992.53  | TRUMAN               | Harry           | 33 Soldier Way            |
+           34_| 19531961 |  5000000.00  |    32502.50  | EISENHOWER           | Dwight          | 34 Cold War St.           |
+           35_| 19611963 |  1700000.00  |  5084035.13  | KENNEDY              | John F.         | 35 Youngest Rd.           |
+           36_| 19631969 |  1700000.00  |      833.13  | JOHNSON II           | Lyndon          | 36 Turbulent St.          |
+           37_| 19691974 |  1700000.00  |      600.34  | NIXON                | Richard         | 37 Watergate Rd.          |
+           38_| 19741977 |  1700000.00  |  5051318.40  | FORD                 | Gerald          | 38 Coors Ln.              |
+           39_| 19771981 |   100000.00  |  3118826.10  | CARTER               | Jimmy           | 39 Peanut Rd.             |
+           40_| 19811989 |   100000.00  |    50278.80  | REAGAN               | Ronald          | 40 Actor St.              |
+           41_| 19891993 |   100000.00  |    40793.10  | BUSH                 | George H.W.     | 41 Pilot St.              |
+           42_| 19932001 |   100000.00  |  8118313.14  | CLINTON              | William J.      | 42 Hillary Rd.            |
+           43_| 20012009 |   100000.00  |    31313.20  | BUSH II              | George W.       | 43 Tex St.                |
+           44_| 20092017 |  9950000.00  |    92311.00  | OBAMA                | Barack H.       | 44 Organizer St.          |
+           45_| 20172021 |  8100000.00  |       10.00  | TRUMP                | Donald J.       | 45 Business Rd.           |
+              +--------------------------------------------------------------------------------------------------------------
+1PAGE    2
+                ---------------------------------------------------------------------------------------------------------+
+                |       ADDRESS2       |    ADDRESS3     | RESERVED |                      COMMENTS                      |
+                ---------------------------------------------------------------------------------------------------------+
+              1_| Westmoreland County  | Virginia        |          | longed to retire to his fields at Mount Vernon     |
+              2_| Braintree            | Massachusetts   |          | retired to his farm in Quincy                      |
+              3_| Albemarle County     | Virginia        |          | retired to Monticello                              |
+              4_| Port Conway          | Virginia        |          | retirement at Montpelier                           |
+              5_| Westmoreland County  | Virginia        |          | Russia must not encroach southward                 |
+              6_| Braintree            | Massachusetts   |          | collapsed on the floor of the House from a stroke  |
+              7_| Waxhaw               | South Carolina  |          | that to the victors belong the spoils              |
+              8_| Columbia             | New York        |          | independent treasury system                        |
+              9_| Charles City County  | Virginia        |          | ornate with classical allusions                    |
+             10_| Charles City County  | Virginia        |          | opposed the Missouri Compromise                    |
+             11_| Mecklenburg County   | North Carolina  |          | health undermined from hard work                   |
+             12_| Orange County        | Virginia        |          | acted at times as though he were above parties     |
+             13_| Cayuga County        | New York        |          | signed the Fugitive Slave Act                      |
+             14_| Hillsboro            | New Hampshire   |          | he tried to persuade Spain to sell Cuba            |
+             15_| Mercersburg          | Pennslyvania    |          | widening rift over slavery                         |
+             16_| Hodgenville          | Kentucky        |          | new birth of freedom                               |
+             17_| Raleigh              | North Carolina  |          | freedmen were beginning to appear                  |
+             18_| Point Pleasant       | Ohio            |          | he brought part of his Army staff to White House   |
+             19_| Delaware             | Ohio            |          | appointments must be made on merit                 |
+             20_| Orange               | Ohio            |          | dark horse nominee                                 |
+             21_| Fairfield            | Vermont         |          | suffering from a fatal kidney disease              |
+             22_| Caldwell             | New Jersey      |          | blunt treatment of the railroad strikers           |
+             23_| North Bend           | Ohio            |          | tariff was removed from imported raw sugar         |
+             24_| Caldwell             | New Jersey      |          | faced an acute depression                          |
+             25_| Niles                | Ohio            |          | quietly stood for "the full dinner pail."          |
+             26_| New York             | New York        |          | high-pitched voice, jutting jaw, and pounding fist |
+             27_| Cincinnati           | Ohio            |          | his administration initiated 80 antitrust suits    |
+             28_| Staunton             | Virginia        |          | asked Congress for declaration of war on Germnany  |
+             29_| Corsica              | Ohio            |          | less government in business                        |
+             30_| Plymouth             | Vermont         |          | government has become dangerously complicated      |
+             31_| West Branch          | Iowa            |          | he became a powerful critic of the New Deal        |
+             32_| Hyde Park            | New York        |          | planning of a United Nations                       |
+             33_| Lamar                | Missouri        |          | he was negotiating a military alliance             |
+             34_| Denison              | Texas           |          | development of his "atoms for peace"               |
+             35_| Brookline            | Massachusetts   |          | stopping the spread of nuclear weapons             |
+             36_| Stonewall            | Texas           |          | new antipoverty and anti-discrimination            |
+             37_| Yorba Linda          | California      |          | number of administration officials resigned        |
+             38_| Omaha                | Nebraska        |          | help business operate more freely by reducing tax  |
+             39_| Plains               | Georgia         |          | Iran held Americans captive                        |
+             40_| Tampico              | Illinois        |          | peace through strength                             |
+             41_| Milton               | Massachusetts   |          | Desert Storm routed Iraq's million-man army        |
+             42_| Hope                 | Arkansas        |          | issues surrounding personal indiscretions          |
+             43_| New Haven            | Connecticut     |          | terrorists attacked our Nation                     |
+             44_| Honolulu             | Hawaii          |          | first African American president                   |
+             45_| New York             | New York        |          | no previous political office held                  |
+                ---------------------------------------------------------------------------------------------------------+
+0SUCCESSFUL RETRIEVAL OF         45 ROW(S)
+ 

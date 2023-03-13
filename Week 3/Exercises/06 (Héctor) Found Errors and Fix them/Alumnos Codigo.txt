@@ -1,0 +1,149 @@
+      *-----------------------
+       IDENTIFICATION DIVISION.
+      *-----------------------
+       PROGRAM-ID.    CBL0001
+       AUTHOR.        Adan.
+      *--------------------
+       ENVIRONMENT DIVISION.
+      *--------------------
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT PRINT-LINE ASSIGN TO PRTLINE.
+           SELECT ACCT-REC   ASSIGN TO ACCTREC.
+      *-------------
+       DATA DIVISION.
+      *-------------
+       FILE SECTION.
+       FD  PRINT-LINE RECORDING MODE F.
+       01  PRINT-REC.
+           05  NOMBRE-S           PIC X(15).
+           05  ESTADO-S           PIC X(15).
+           05  ACCT-SALDO-S       PIC $$,$$$,$$9.99.
+
+      *Este es el archivo de entrada
+       FD  ACCT-REC RECORDING MODE F.
+       01  ACCT-FIELDS.
+           05  ACCT-ID            PIC X(8).
+           05  ACCT-LIMITE        PIC S9(7)V99 COMP-3.
+           05  ACCT-SALDO         PIC S9(7)V99 COMP-3.
+           05  APELLIDO-P         PIC X(20).
+           05  NOMBRE             PIC X(15).
+           05  DIRECCION.
+               10  CALLE          PIC X(25).
+               10  CIUDAD         PIC X(20).
+               10  ESTADO         PIC X(15).
+           05  RESERVED           PIC X(7).
+           05  COMENTARIOS        PIC X(50).
+      *
+       WORKING-STORAGE SECTION.
+       01 FLAGS.
+         05 BANDERA-FILE          PIC X VALUE SPACE.
+               88  FIN-FILE        VALUE 'Y'.
+               88  NO-FIN-FILE     VALUE 'N'.
+         05 BANDERA-VIRGINIA      PIC X VALUE SPACE.
+               88  SI-VIRGINIA     VALUE 'Y'.
+               88  NO-VIRGINIA     VALUE 'N'.
+         05 BANDERA-REGALO      PIC X VALUE SPACE.
+               88  NO-REGALO      VALUE 'Y'.
+               88  REGALO-BOLETOS VALUE 'N'.
+
+       01 CONSTANTES.
+         05 WSC-VIRGINIA          PIC X(08) VALUE 'VIRGINIA'.
+         05 WSC-VIRGINIA2         PIC X(08) VALUE 'Virginia'.
+         05 WSC-1                 PIC 9(01) VALUE 1.
+         05 WSC-3                 PIC 9(01) VALUE 3.
+         05 WSC-20000             PIC 9(05) VALUE 20000.
+
+       01 CONTADORES.
+         05 CONTADORBOLETOS       PIC 9(01).
+
+       01 VARIABLES.
+         05 SALDOMOMENTO          PIC 9(05).
+
+       01  ENCA-1.
+           05  FILLER     PIC X(22) VALUE 'Elabora: Hector       '.
+           05  FILLER     PIC X(20) VALUE SPACES.
+
+       01  ENCA-VIR.
+           05  FILLER PIC X(28) VALUE '-------- AREA DE VIRGINIA --'.
+           05  FILLER PIC X(05) VALUE '-----'.
+
+       01  ENCA-BOLETOS.
+           05  FILLER PIC X(28) VALUE 'FELICIDADES TIENES UN BOLETO'.
+
+       PROCEDURE DIVISION.
+      *------------------
+       ABRO-ARCHIVOS.
+           OPEN INPUT  ACCT-REC.
+           OPEN OUTPUT PRINT-LINE.
+      *
+       PROCESO-PRINCIPAL.
+           SET NO-FIN-FILE TO TRUE
+           SET NO-VIRGINIA TO TRUE
+      **** ENCABEZADOS
+           WRITE PRINT-REC FROM ENCA-1
+           WRITE PRINT-REC FROM ENCA-VIR
+      *
+           PERFORM LEE-ARCHIVO
+           PERFORM UNTIL FIN-FILE
+               PERFORM ESCRIBO-VIRGINIA
+               IF ACCT-SALDO >= WSC-20000
+                  IF SI-VIRGINIA
+                     PERFORM BOLETOS-VIRGINIA-REGALO
+                  END-IF
+               END-IF
+               SET REGALO-BOLETOS TO TRUE
+               PERFORM LEE-ARCHIVO
+           END-PERFORM.
+      *
+       CIERRO-Y-ACABO.
+           CLOSE ACCT-REC.
+           CLOSE PRINT-LINE.
+           GOBACK.
+      *
+       LEE-ARCHIVO.
+           READ ACCT-REC
+               AT END
+                  SET FIN-FILE TO TRUE
+           END-READ.
+      *
+       ESCRIBO-BOLETOS.
+           WRITE PRINT-REC FROM ENCA-BOLETOS.
+
+       ESCRIBO-ARCHIVO.
+           MOVE NOMBRE      TO  NOMBRE-S
+           MOVE ESTADO      TO  ESTADO-S
+           MOVE ACCT-SALDO  TO ACCT-SALDO-S
+           WRITE PRINT-REC.
+      *
+       ESCRIBO-VIRGINIA.
+           EVALUATE ESTADO
+              WHEN WSC-VIRGINIA
+                 SET SI-VIRGINIA TO TRUE
+                 PERFORM ESCRIBO-ARCHIVO
+              WHEN OTHER
+                 SET NO-VIRGINIA TO TRUE
+           END-EVALUATE.
+
+       BOLETOS-VIRGINIA-REGALO.
+
+           INITIALIZE SALDOMOMENTO
+           INITIALIZE CONTADORBOLETOS
+
+           PERFORM UNTIL NO-REGALO
+               ADD WSC-20000 TO SALDOMOMENTO
+               ADD WSC-1 TO CONTADORBOLETOS
+               IF SALDOMOMENTO >= ACCT-SALDO
+                  SET NO-REGALO TO TRUE
+               ELSE
+                  IF SALDOMOMENTO <= ACCT-SALDO
+                     SET REGALO-BOLETOS TO TRUE
+                     PERFORM ESCRIBO-BOLETOS
+                  END-IF
+               END-IF
+           END-PERFORM.
+
+
+
+
+

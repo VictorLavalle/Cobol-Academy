@@ -1,0 +1,9 @@
+-------- AREA DE VIRGINIA ------------------
+George         Virginia             $188.74
+Thomas         Virginia           $7,008.13
+James          Virginia             $503.13
+James          Virginia          $31,313.13
+William Henry  Virginia             $313.50
+John           Virginia             $121.65
+Zachary        Virginia             $828.20
+Woodrow        Virginia          $84,033.13

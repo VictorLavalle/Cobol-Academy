@@ -1,0 +1,50 @@
+ Nombre Cliente    Apellido Paterno       Saldo cliente
+ ---------------   -------------          -------------
+
+ George            WASHINGTON                   $188.74
+ John              ADAMS                      $3,188.33
+ Thomas            JEFFERSON                  $7,008.13
+ James             MADISON                      $503.13
+ James             MONROE                    $31,313.13
+ John Quincy       ADAMS II                  $31,250.33
+ Andrew            JACKSON                    $3,318.30
+ Martin            VAN BUREN                    $325.00
+ William Henry     HARRISON                     $313.50
+ John              TYLER                        $121.65
+ James             POLK                         $314.05
+ Zachary           TAYLOR                       $828.20
+ Millard           FILLMORE                     $373.10
+ Franklin          PIERCE                       $315.07
+ James             BUCHANAN                       $7.90
+ Abraham           LINCOLN                      $313.13
+ Andrew            JOHNSON                      $603.14
+ Ulysses S.        GRANT                     $32,318.30
+ Rutherford B.     HAYES                      $5,860.55
+ James             GARFIELD                   $5,600.27
+ Chester           ARTHUR                    $31,070.23
+ Grover            CLEVELAND                 $99,313.10
+ Benjamin          HARRISON II                $5,003.13
+ Grover            CLEVELAND II              $40,050.24
+ William           MCKINLEY                  $31,950.13
+ Theodore          ROOSEVELT                $781,319.43
+ William H.        TAFT                      $40,199.73
+ Woodrow           WILSON                    $84,033.13
+ Warren            HARDING                   $11,829.27
+ Calvin            COOLIDGE                  $10,619.20
+ Herbert           HOOVER                    $31,318.33
+ Franklin D.       ROOSEVELT II              $31,310.23
+ Harry             TRUMAN                    $60,992.53
+ Dwight            EISENHOWER                $32,502.50
+ John F.           KENNEDY                $5,084,035.13
+ Lyndon            JOHNSON II                   $833.13
+ Richard           NIXON                        $600.34
+ Gerald            FORD                   $5,051,318.40
+ Jimmy             CARTER                 $3,118,826.10
+ Ronald            REAGAN                    $50,278.80
+ George H.W.       BUSH                      $40,793.10
+ William J.        CLINTON                $8,118,313.14
+ George W.         BUSH II                   $31,313.20
+ Barack H.         OBAMA                     $92,311.00
+ Donald J.         TRUMP                         $10.00
+
+ 17:11 PM - 05/03/23
