@@ -1,0 +1,253 @@
+      *-----------------------
+       IDENTIFICATION DIVISION.
+      *-----------------------
+       PROGRAM-ID.    CBLDB21
+       AUTHOR.        Xideral.
+
+       ENVIRONMENT DIVISION.
+      *--------------------
+       CONFIGURATION SECTION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT REPOUT
+                  ASSIGN TO UT-S-REPORT.
+
+       DATA DIVISION.
+      *-------------
+       FILE SECTION.
+       FD  REPOUT
+               RECORD CONTAINS 48 CHARACTERS
+               LABEL RECORDS ARE OMITTED
+               DATA RECORD IS REPREC.
+
+       01  REPREC.
+           05  ACCT-NOMBRE-O  PIC X(15).
+           05  ACCT-ESTADO-O    PIC X(20).
+           05  ACCT-SALDO-O   PIC $$,$$$,$$9.99.
+
+
+       WORKING-STORAGE SECTION.
+       01 FLAGS.
+         05 BANDERA-CURSOR          PIC X VALUE SPACE.
+               88  FIN-CURSOR        VALUE 'Y'.
+               88  NO-FIN-CURSOR     VALUE 'N'.
+      *****************************************************
+                EXEC SQL INCLUDE SQLCA  END-EXEC.
+      *****************************************************
+       01 UD-ERROR-MESSAGE   PIC X(80)  VALUE SPACES.
+       01  SQLCODES.
+           05 SQLCODE0             PIC S9(9) COMP-5 VALUE 0.
+           05 SQLCODE100           PIC S9(9) COMP-5 VALUE 100.
+      *****************************************************
+      * DECLARACION SQL DE LA TABLA                       *
+      *****************************************************
+                EXEC SQL DECLARE Z94476T  TABLE
+                        (ACCTNO     CHAR(8)  NOT NULL,
+                         LIMIT      DECIMAL(9,2)     ,
+                         BALANCE    DECIMAL(9,2)     ,
+                         SURNAME    CHAR(20) NOT NULL,
+                         FIRSTN     CHAR(15) NOT NULL,
+                         ADDRESS1   CHAR(25) NOT NULL,
+                         ADDRESS2   CHAR(20) NOT NULL,
+                         ADDRESS3   CHAR(15) NOT NULL,
+                         RESERVED   CHAR(7)  NOT NULL,
+                         COMMENTS   CHAR(50) NOT NULL)
+                         END-EXEC.
+      *****************************************************
+      * SQL CURSORS                                       *
+      *****************************************************
+                EXEC SQL DECLARE CURTABLA  CURSOR FOR
+                         SELECT * FROM Z94476T
+                         ORDER BY BALANCE DESC
+                         FETCH FIRST 3 ROWS ONLY 
+                 END-EXEC.
+      *****************************************************
+      * VARIABLES HOST EN DONDE RECIBIMOS LA TABLA        *
+      *****************************************************
+       01 VARIABLES-HOST.
+          02 ACCT-ID            PIC X(8).
+          02 ACCT-LIMITE        PIC S9(7)V99 COMP-3.
+          02 ACCT-SALDO         PIC S9(7)V99 COMP-3.
+          02 ACCT-APEP          PIC X(20).
+          02 ACCT-NOMBRE        PIC X(15).
+          02 ACCT-DIRE1         PIC X(25).
+          02 ACCT-DIRE2         PIC X(20).
+          02 ACCT-DIRE3         PIC X(15).
+          02 ACCT-RESER         PIC X(7).
+          02 ACCT-COMENT        PIC X(50).
+      *****************************************************
+      * CONSTANTES                                        *
+      *****************************************************
+       01 WSC-NEW-YORK              PIC X(10) VALUE 'New York'.
+       01 WSC-VACIO                 PIC X(20) VALUE 'NO HAY REGISTROS'.
+
+      *****************************************************
+      * CONTADORES                                        *
+      *****************************************************
+       01 CONTADOR-CORRECTOS       PIC 9(2) VALUE 0.
+       01 CONTADOR-ERRONEOS        PIC 9(2) VALUE 0.
+       01 CONTADOR-LEIDOS          PIC 9(2) VALUE 0.
+       01 CONTADOR-ESCRITOS        PIC 9(2) VALUE 0.
+       01 CONTADOR-MODIFICADOS     PIC 9(2) VALUE 0.
+
+      *****************************************************
+      * VARIABLES                                         *
+      *****************************************************
+       01 WSV-BAL-PROM             PIC S9(7)V99 COMP-3.
+       01 WSV-NOM-PARRAF           PIC X(20).
+       01 MENSAJE-SALIDA           PIC X(30).
+
+      *****************************************************
+      * CABECERAS Y PIE DE PAGINA                         *
+      *****************************************************
+
+       01 ENCABEZADO-1.
+           05 FILLER         PIC X(48) VALUE 'ELABORADO POR : ASAEL'.
+
+       01 ENCABEZADO-2.
+           05 FILLER         PIC X(6) VALUE 'NOMBRE'.
+           05 FILLER         PIC X(9) VALUE SPACES.
+           05 FILLER         PIC X(6) VALUE 'ESTADO'.
+           05 FILLER         PIC X(14) VALUE SPACES.
+           05 FILLER         PIC X(5) VALUE 'SALDO'.
+           05 FILLER         PIC X(8) VALUE SPACES.
+
+       01 PIE-1.
+           05 FILLER      PIC X(35) 
+           VALUE 'Promedio de saldo de cliente es : '.
+           05 PIE-PROMEDIO    PIC $$,$$$,$$9.99.
+      
+
+       PROCEDURE DIVISION.
+       EMPIEZO-PROGRAMA.
+                OPEN OUTPUT REPOUT.
+                SET NO-FIN-CURSOR TO TRUE
+                
+                PERFORM PROCESO-PRINCIPAL.
+
+       FIN-PROGRAMA.
+                PERFORM CIFRAS-CONTROL.
+                CLOSE REPOUT.
+                GOBACK.
+
+       PROCESO-PRINCIPAL.
+                PERFORM ABRO-CURSOR
+                PERFORM ACTUALIZAR-REGISTROS UNTIL FIN-CURSOR
+                PERFORM CIERRO-CURSOR 
+                SET NO-FIN-CURSOR TO TRUE
+                PERFORM ABRO-CURSOR
+                PERFORM LEO-CURSOR
+                IF SQLCODE = 100
+                    DISPLAY WSC-VACIO
+                    WRITE REPREC FROM WSC-VACIO
+                    GOBACK
+                END-IF
+                WRITE REPREC FROM ENCABEZADO-1
+                WRITE REPREC FROM ENCABEZADO-2
+                PERFORM CICLO-CURSOR UNTIL FIN-CURSOR
+                PERFORM CIERRO-CURSOR.
+                PERFORM QUERY-PROMEDIO.
+                MOVE WSV-BAL-PROM TO PIE-PROMEDIO.
+                WRITE REPREC FROM PIE-1.
+
+       ACTUALIZAR-REGISTROS.
+                 PERFORM LEO-CURSOR.
+                 IF SQLCODE = 0 
+                    PERFORM ACUTALIZA-ESTADO
+                 END-IF.
+                
+       CICLO-CURSOR.         
+                PERFORM ESCRIBE-REPORTE.
+                PERFORM LEO-CURSOR.
+
+       ESCRIBE-REPORTE.
+                INITIALIZE REPREC.          
+                MOVE  ACCT-NOMBRE  TO  ACCT-NOMBRE-O.
+                MOVE  ACCT-DIRE3    TO  ACCT-ESTADO-O.
+                MOVE  ACCT-SALDO   TO  ACCT-SALDO-O.
+                WRITE REPREC AFTER ADVANCING 2 LINES.
+                ADD 1 TO CONTADOR-ESCRITOS.
+
+       EVALUO-SQLCODES.
+           EVALUATE SQLCODE
+              WHEN SQLCODE0
+                   SET NO-FIN-CURSOR TO TRUE
+              WHEN SQLCODE100
+                   SET FIN-CURSOR TO TRUE
+              WHEN OTHER
+                   EXEC SQL
+                       ROLLBACK
+                   END-EXEC
+                   ADD 1 TO CONTADOR-ERRONEOS
+                   PERFORM CIFRAS-CONTROL-ERROR
+                   GOBACK
+           END-EVALUATE.
+
+       ABRO-CURSOR.
+           EXEC SQL
+              OPEN CURTABLA
+           END-EXEC.
+           MOVE 'ABRO-CURSOR' TO WSV-NOM-PARRAF
+           PERFORM EVALUO-SQLCODES.
+
+       LEO-CURSOR.
+           EXEC SQL
+              FETCH CURTABLA
+              INTO :VARIABLES-HOST
+           END-EXEC.
+           IF SQLCODE = 0 
+              ADD 1 TO CONTADOR-CORRECTOS
+              ADD 1 TO CONTADOR-LEIDOS
+           ELSE
+           MOVE 'LEO-CURSOR' TO WSV-NOM-PARRAF
+           PERFORM EVALUO-SQLCODES
+           END-IF.
+
+       CIERRO-CURSOR.
+           EXEC SQL
+              CLOSE CURTABLA
+           END-EXEC.
+           MOVE 'CIERRO-CURSOR' TO WSV-NOM-PARRAF
+           PERFORM EVALUO-SQLCODES.
+
+       ACUTALIZA-ESTADO.
+           EXEC SQL
+              UPDATE Z94476T
+              SET ADDRESS3 =  :WSC-NEW-YORK 
+              WHERE ACCTNO =  :ACCT-ID
+           END-EXEC.      
+           IF SQLCODE = 0 
+              ADD 1 TO CONTADOR-CORRECTOS
+              ADD 1 TO CONTADOR-MODIFICADOS
+           ELSE
+           MOVE 'ACTUALIZA-ESTADO' TO WSV-NOM-PARRAF
+           PERFORM EVALUO-SQLCODES
+           END-IF.  
+
+
+       QUERY-PROMEDIO.
+           EXEC SQL
+              SELECT AVG(BALANCE)
+              INTO :WSV-BAL-PROM
+              FROM Z94476T
+           END-EXEC.
+           IF SQLCODE = 0 
+              ADD 1 TO CONTADOR-CORRECTOS
+           ELSE
+           MOVE 'QUERY-PROMEDIO' TO WSV-NOM-PARRAF
+           PERFORM EVALUO-SQLCODES
+           END-IF.
+
+       CIFRAS-CONTROL.
+           DISPLAY 'Querys ejecutados correctamente:' CONTADOR-CORRECTOS
+           DISPLAY 'Registros leidos: '   CONTADOR-LEIDOS
+           DISPLAY 'Registros escritos: '  CONTADOR-ESCRITOS
+           DISPLAY 'Registros modificados: '  CONTADOR-MODIFICADOS.
+
+       CIFRAS-CONTROL-ERROR.
+           DISPLAY 'Querys ejecutados correctamente:' CONTADOR-CORRECTOS
+           DISPLAY 'Rollback ejecutados :' CONTADOR-ERRONEOS
+           DISPLAy 'Error en parrafo: ' WSV-NOM-PARRAF 
+           DISPLAY 'Registros leidos: '   CONTADOR-LEIDOS
+           DISPLAY 'Registros escritos: '  CONTADOR-ESCRITOS
+           DISPLAY 'Registros modificados: '  CONTADOR-MODIFICADOS.

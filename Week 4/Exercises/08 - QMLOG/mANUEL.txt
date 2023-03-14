@@ -1,0 +1,180 @@
+      *-----------------------
+       IDENTIFICATION DIVISION.
+      *-----------------------
+       PROGRAM-ID.    CBLDB21
+       AUTHOR.        Xideral.
+
+       ENVIRONMENT DIVISION.
+      *--------------------
+       CONFIGURATION SECTION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT REPOUT
+                  ASSIGN TO UT-S-REPORT.
+
+       DATA DIVISION.
+      *-------------
+       FILE SECTION.
+       FD  REPOUT
+               RECORD CONTAINS 43 CHARACTERS
+               LABEL RECORDS ARE OMITTED
+               DATA RECORD IS REPREC.
+
+       01  REPREC.
+           05  ACCT-NOMBRE-O    PIC X(15).
+           05  ACCT-ESTADO      PIC X(15).
+           05  ACCT-SALDO-O     PIC $$,$$$,$$9.99.
+
+       WORKING-STORAGE SECTION.
+       01 FLAGS.
+         05 BANDERA-CURSOR          PIC X VALUE SPACE.
+               88  FIN-CURSOR        VALUE 'Y'.
+               88  NO-FIN-CURSOR     VALUE 'N'.
+
+       01 ENC-1.
+         05 FILLER        PIC X(09) VALUE 'REALIZO: '.                 
+         05 FILLER        PIC X(14) VALUE 'MANUEL JIMENEZ'.                 
+       
+       01 ENC-2.
+         05 FILLER        PIC X(15) VALUE 'NOMBRE'.                 
+         05 FILLER        PIC X(15) VALUE 'ESTADO'.                 
+         05 FILLER        PIC X(13) VALUE 'SALDO'.                 
+
+       01 PIE-PROM.
+          05 FILLER             PIC X(33) 
+             VALUE 'Promedio de saldo de clientes es='.
+          05 MASK-PROM          PIC $$,$$$,$$9.99.        
+      *****************************************************
+                EXEC SQL INCLUDE SQLCA  END-EXEC.
+      *****************************************************
+       01 UD-ERROR-MESSAGE   PIC X(80)  VALUE SPACES.
+       01  SQLCODES.
+           05 SQLCODE0             PIC S9(9) COMP-5 VALUE 0.
+           05 SQLCODE100           PIC S9(9) COMP-5 VALUE 100.
+      *****************************************************
+      * DECLARACION SQL DE LA TABLA                       *
+      *****************************************************
+                EXEC SQL DECLARE Z94473T  TABLE
+                        (ACCTNO     CHAR(8)  NOT NULL,
+                         LIMIT      DECIMAL(9,2)     ,
+                         BALANCE    DECIMAL(9,2)     ,
+                         SURNAME    CHAR(20) NOT NULL,
+                         FIRSTN     CHAR(15) NOT NULL,
+                         ADDRESS1   CHAR(25) NOT NULL,
+                         ADDRESS2   CHAR(20) NOT NULL,
+                         ADDRESS3   CHAR(15) NOT NULL,
+                         RESERVED   CHAR(7)  NOT NULL,
+                         COMMENTS   CHAR(50) NOT NULL)
+                         END-EXEC.
+      *****************************************************
+      * SQL CURSORS                                       *
+      *****************************************************
+                EXEC SQL DECLARE CURTABLA  CURSOR FOR
+                        SELECT FIRSTN, ADDRESS3, BALANCE FROM Z94473T 
+                        ORDER BY BALANCE DESC LIMIT 3
+                 END-EXEC.
+      *****************************************************
+      * VARIABLES HOST EN DONDE RECIBIMOS LA TABLA        *
+      *****************************************************
+       01 VARIABLES-HOST.
+          02 ACCT-NOMBRE        PIC X(15).
+          02 ACCT-DIRE3         PIC X(15).
+          02 ACCT-SALDO         PIC S9(7)V99 COMP-3.
+         
+
+       01 CONSTANTES-UPDATE.
+          02 WSC-NY             PIC X(15) VALUE 'NUEVA YORK'.
+
+       01 VARIABLES-PROMEDIO.
+          02 WSV-PROM           PIC S9(7)V99 COMP-3.
+
+       PROCEDURE DIVISION.
+       EMPIEZO-PROGRAMA.
+                OPEN OUTPUT REPOUT.
+                SET NO-FIN-CURSOR TO TRUE
+                PERFORM PROCESO-PRINCIPAL.
+
+       FIN-PROGRAMA.
+                CLOSE REPOUT.
+                GOBACK.
+
+       PROCESO-PRINCIPAL.
+                WRITE REPREC FROM ENC-1
+                MOVE SPACES TO REPREC
+                WRITE REPREC AFTER ADVANCING 1 LINES
+                WRITE REPREC FROM ENC-2
+                PERFORM UPDATE-NY
+                PERFORM SACAR-PROMEDIO
+                PERFORM ABRO-CURSOR
+                PERFORM LEO-CURSOR
+                PERFORM CICLO-CURSOR UNTIL FIN-CURSOR
+                PERFORM CIERRO-CURSOR
+                MOVE SPACES TO REPREC
+                WRITE REPREC AFTER ADVANCING 1 LINES
+                WRITE REPREC FROM PIE-PROM.
+                .
+
+
+       CICLO-CURSOR.
+                PERFORM ESCRIBE-REPORTE.
+                PERFORM LEO-CURSOR.
+
+       ESCRIBE-REPORTE.
+                INITIALIZE REPREC
+                MOVE  ACCT-NOMBRE  TO  ACCT-NOMBRE-O.
+                MOVE  ACCT-DIRE3   TO  ACCT-ESTADO.  
+                MOVE  ACCT-SALDO   TO  ACCT-SALDO-O.
+                WRITE REPREC AFTER ADVANCING 2 LINES.
+
+       EVALUO-SQLCODES.
+           EVALUATE SQLCODE
+              WHEN SQLCODE0
+                   SET NO-FIN-CURSOR TO TRUE
+                   DISPLAY 'EL CURSOR SE EJECUTO CORRECTAMENTE'
+              WHEN SQLCODE100
+                   SET FIN-CURSOR TO TRUE
+                   DISPLAY 'CURZOR FINALIZADO'
+              WHEN OTHER
+                   MOVE 'ERROR EN CURSOR' TO UD-ERROR-MESSAGE
+                   DISPLAY UD-ERROR-MESSAGE
+                   STOP RUN
+           END-EVALUATE.
+
+       ABRO-CURSOR.
+           EXEC SQL
+              OPEN CURTABLA
+           END-EXEC.
+           PERFORM EVALUO-SQLCODES.
+
+       LEO-CURSOR.
+           EXEC SQL
+              FETCH CURTABLA
+              INTO :VARIABLES-HOST
+           END-EXEC.
+           PERFORM EVALUO-SQLCODES.
+
+       CIERRO-CURSOR.
+           EXEC SQL
+              CLOSE CURTABLA
+           END-EXEC.
+           PERFORM EVALUO-SQLCODES.
+
+       UPDATE-NY.
+           EXEC SQL
+              UPDATE Z94473T 
+              SET ADDRESS3 = :WSC-NY 
+              WHERE BALANCE IN (
+                  SELECT BALANCE 
+                  FROM Z94473T 
+                  ORDER BY BALANCE DESC 
+                  FETCH FIRST 3 ROWS ONLY)
+           END-EXEC.
+       
+       SACAR-PROMEDIO.
+           EXEC SQL
+             SELECT AVG(BALANCE) INTO :WSV-PROM
+             FROM Z94473T
+           END-EXEC
+           
+           MOVE WSV-PROM TO MASK-PROM
+           .
