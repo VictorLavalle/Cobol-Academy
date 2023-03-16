@@ -1,3 +1,14 @@
+# Práctica 10 - Academia Cobol 2023
+
+***Alumno:** Víctor Lavalle*
+
+***Instructor:** Héctor Camacho*
+
+
+
+## Código Fuente
+
+```cobol
       *----------------------------------------------------------------*
        IDENTIFICATION DIVISION.
       *----------------------------------------------------------------*
@@ -28,13 +39,13 @@
       *----------------------------------------------------------------*
        FILE SECTION.
        FD  REPOUT
-               RECORD CONTAINS 23 CHARACTERS
+               RECORD CONTAINS 30 CHARACTERS
                LABEL RECORDS ARE OMITTED
                DATA RECORD IS REPREC.
 
        01 REPREC.
           05 ACCT-ID-O              PIC X(08).
-          05 FILLER                 PIC X(02) VALUE SPACES.
+          05 FILLER                 PIC X(07) VALUE SPACES.
           05 ACCT-NAME-O            PIC X(15).
 
 
@@ -72,7 +83,7 @@
       *****************************************************
       * SQL CURSORS                                       *
       *****************************************************
-                EXEC SQL DECLARE CURTABLE CURSOR FOR
+                EXEC SQL DECLARE CURTABLE CURSOR WITH HOLD FOR
                          SELECT ACCTNO, FIRSTN
                          FROM Z94474T
                          ORDER BY ACCTNO ASC
@@ -173,7 +184,7 @@
        01 HEADER-2.
           05 FILLER                 PIC X(11) VALUE
                 'Num. Cuenta'.
-          05 FILLER                 PIC X(09) VALUE SPACES.
+          05 FILLER                 PIC X(04) VALUE SPACES.
           05 FILLER                 PIC X(06) VALUE
                 'Nombre'.
 
@@ -193,33 +204,27 @@
        PROCESO-PRINCIPAL.
            PERFORM ESCRIBE-ENCABEZADO
 
+           PERFORM ABRO-CURSOR
 
-           PERFORM UNTIL WSV-COUNT-REC = WSC-COUNT-LIMIT
-      *
-                   PERFORM ABRO-CURSOR
-                   PERFORM LEO-CURSOR
+           PERFORM LOOP-ASAEL  UNTIL WSV-COUNT-REC = WSC-COUNT-LIMIT
+           PERFORM RESET-COUNTER
 
-                   IF SQLCODE = SQLCODE100
-                      MOVE WSC-MAIN-PRO TO WSV-PARG-NAME
-                      DISPLAY WSC-ERR-MSG-EMPTY
-                              ' en '
-                              WSV-PARG-NAME
-                              ' SQLCODE:'
-                              SQLCODE
-                      STOP RUN
-                   END-IF
+           PERFORM LOOP-DIANA  UNTIL WSV-COUNT-REC = WSC-COUNT-LIMIT
+           PERFORM RESET-COUNTER
 
-                   PERFORM UPDATE-RECORDS
-                   PERFORM SUM-COUNTER
-                   PERFORM CIERRO-CURSOR
+           PERFORM LOOP-JORGE  UNTIL WSV-COUNT-REC = WSC-COUNT-LIMIT
+           PERFORM RESET-COUNTER
 
-           END-PERFORM
+           PERFORM LOOP-ANDREA UNTIL WSV-COUNT-REC = WSC-COUNT-LIMIT
+           PERFORM RESET-COUNTER
 
-           PERFORM RESET-COUNTER.
+           PERFORM LOOP-CARINA UNTIL WSV-COUNT-REC = WSC-COUNT-LIMIT
+           PERFORM RESET-COUNTER
 
+           PERFORM CIERRO-CURSOR.
 
-
-           PERFORM CICLO-CURSOR UNTIL FIN-CURSOR
+           PERFORM ABRO-CURSOR
+           PERFORM LOOP-CURSOR UNTIL FIN-CURSOR
            PERFORM CIERRO-CURSOR.
 
 
@@ -227,7 +232,7 @@
       * Paragraphs to manipulate the cursors            *
       ***************************************************
 
-       CICLO-CURSOR.
+       LOOP-CURSOR.
            PERFORM ESCRIBE-REPORTE.
            PERFORM LEO-CURSOR.
 
@@ -267,7 +272,7 @@
 
 
       ***************************************************
-      * Paragraphs to sum 1 to the counter              *
+      * Paragraphs to hanlde the counter                *
       ***************************************************
        SUM-COUNTER.
            ADD 1 TO WSV-COUNT-REC.
@@ -332,37 +337,12 @@
        UPDATE-RECORDS.
 
            PERFORM LEO-CURSOR
+
            IF SQLCODE = SQLCODE0
-
-              EVALUATE WSV-COUNT-REC
-              WHEN WSC-COUNT-LIMIT
-                   MOVE WSC-NAME-ASAEL TO WSV-TEMP-NAME
-                   PERFORM UPDATE-NAME
-                   PERFORM SQL-COMMIT
-
-              WHEN WSC-COUNT-LIMIT * 2
-                   MOVE WSC-NAME-DIANA TO WSV-TEMP-NAME
-                   PERFORM UPDATE-NAME
-                   PERFORM SQL-COMMIT
-
-              WHEN WSC-COUNT-LIMIT * 3
-                   MOVE WSC-NAME-JORGE TO WSV-TEMP-NAME
-                   PERFORM UPDATE-NAME
-                   PERFORM SQL-COMMIT
-
-              WHEN WSC-COUNT-LIMIT * 4
-                   MOVE WSC-NAME-ANDREA TO WSV-TEMP-NAME
-                   PERFORM UPDATE-NAME
-                   PERFORM SQL-COMMIT
-
-              WHEN WSC-COUNT-LIMIT * 5
-                   MOVE WSC-NAME-CARINA TO WSV-TEMP-NAME
-                   PERFORM UPDATE-NAME
-                   PERFORM SQL-COMMIT
-
-              END-EVALUATE
-
+              PERFORM UPDATE-NAME
+              PERFORM SUM-COUNTER
            END-IF.
+
 
 
       ****************************************************
@@ -373,12 +353,64 @@
                 UPDATE Z94474T
                 SET FIRSTN = :WSV-TEMP-NAME
                 WHERE ACCTNO = :ACCT-ID
-                END-EXEC
+           END-EXEC
 
            MOVE WSC-UPDATE-NAME TO WSV-PARG-NAME
 
            PERFORM QMLOG-UPDATE.
 
+      ****************************************************
+      *Pargragphs to change the name to the temp variable*
+      ****************************************************
+       UPDATE-NAME-ASAEL.
+           MOVE WSC-NAME-ASAEL TO WSV-TEMP-NAME.
+
+       UPDATE-NAME-DIANA.
+           MOVE WSC-NAME-DIANA TO WSV-TEMP-NAME.
+
+       UPDATE-NAME-JORGE.
+           MOVE WSC-NAME-JORGE TO WSV-TEMP-NAME.
+
+       UPDATE-NAME-ANDREA.
+           MOVE WSC-NAME-ANDREA TO WSV-TEMP-NAME.
+
+       UPDATE-NAME-CARINA.
+           MOVE WSC-NAME-CARINA TO WSV-TEMP-NAME.
+
+      ****************************************************
+      * Pargragphs to change he names every  9 records   *
+      ****************************************************
+       LOOP-ASAEL.
+           PERFORM UPDATE-NAME-ASAEL
+           PERFORM UPDATE-RECORDS
+           PERFORM SQL-COMMIT.
+
+
+
+       LOOP-DIANA.
+           PERFORM UPDATE-NAME-DIANA
+           PERFORM UPDATE-RECORDS
+           PERFORM SQL-COMMIT.
+
+
+
+       LOOP-JORGE.
+           PERFORM UPDATE-NAME-JORGE
+           PERFORM UPDATE-RECORDS
+           PERFORM SQL-COMMIT.
+
+
+
+       LOOP-ANDREA.
+           PERFORM UPDATE-NAME-ANDREA
+           PERFORM UPDATE-RECORDS
+           PERFORM SQL-COMMIT.
+
+
+       LOOP-CARINA.
+           PERFORM UPDATE-NAME-CARINA
+           PERFORM UPDATE-RECORDS
+           PERFORM SQL-COMMIT.
 
 
       ****************************************************
@@ -387,7 +419,7 @@
        SQL-COMMIT.
            EXEC SQL
                 COMMIT
-                END-EXEC.
+           END-EXEC.
 
 
       ****************************************************
@@ -396,7 +428,7 @@
        SQL-ROLLBACK.
            EXEC SQL
                 ROLLBACK
-                END-EXEC.
+           END-EXEC.
 
       ****************************************************
       * Functions to print a log of the program running  *
@@ -407,6 +439,8 @@
            DISPLAY '*' WSC-ERR-MSG-CUR ' EN ' WSV-PARG-NAME '*'
            DISPLAY '* SQLCODE: ' SQLCODE '                    *'
            DISPLAY '******************************************'.
+
+
 
        QMLOG-READ-CURSOR.
            EVALUATE SQLCODE
@@ -452,3 +486,25 @@
                 DISPLAY WSC-ERR-MSG-PARG ' ' WSV-PARG-NAME ' '
                 PERFORM EVALUATE-SQLCODES
            END-EVALUATE.
+
+```
+
+
+
+## Salida
+
+<img src="./Evidencia1.png" alt="Output" style="zoom:150%;" />
+
+<img src="./Evidencia2.png" alt="Output" style="zoom:150%;" />
+
+<img src="./Evidencia2.1.png" alt="Output2.1" style="zoom:150%;" />
+
+
+
+### Base de datos - TN3270
+
+<img src="./Evidencia3.png" alt="Output3" style="zoom:150%;" />
+
+<img src="./Evidencia3.1.png" alt="Output3" style="zoom:150%;" />
+
+<img src="./Evidencia3.2.png" alt="Output3.2" style="zoom:150%;" />
