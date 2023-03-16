@@ -1,4 +1,4 @@
- *----*-------------------
+      *-----------------------
        IDENTIFICATION DIVISION.
       *-----------------------
        PROGRAM-ID.    CBLDB21
@@ -16,46 +16,18 @@
       *-------------
        FILE SECTION.
        FD  REPOUT
-               RECORD CONTAINS 57 CHARACTERS
+               RECORD CONTAINS 69 CHARACTERS
                LABEL RECORDS ARE OMITTED
                DATA RECORD IS REPREC.
 
        01  REPREC.
            05  ACCT-ID-O      PIC X(8).
-           05 COUNT-CHI-SS     PIC Z9.
-           05 ACCT-LIMITE-OS   PIC $$,$$$,$$9.99.
-           05  ACCT-SALDO-OS   PIC $$$,$$$,$$9.99.
+           05  ACCT-LIMITE-O  PIC $$,$$$,$$9.99.
+           05  ACCT-SALDO-O   PIC $$,$$$,$$9.99.
            05  ACCT-APEP-O    PIC X(20).
+           05  ACCT-NOMBRE-O  PIC X(15).
 
        WORKING-STORAGE SECTION.
-
-
-       01  ENCA1.
-           05 FILLER PIC X(09) VALUE '-------- '.
-           05 FILLER PIC X(13) VALUE 'ESTADISTICAS '.
-           05 FILLER PIC X(07) VALUE 'TABLA  '.
-           05 FILLER PIC X(09) VALUE '---------'.
-
-       01  CONS1.
-           05 FILLER PIC X(13)  VALUE 'DINERO TOTAL '.
-           05 FILLER PIC X(11)  VALUE 'CLIENTES : '.
-           05 ACCT-SALDO-O   PIC $$$,$$$,$$9.99.
-
-       01  CONS2.
-           05 FILLER PIC X(12)  VALUE 'CLIENTES EN '.
-           05 FILLER PIC X(12)  VALUE 'VIRGINIA  : '.
-           05 ACCT-LIMITE-O  PIC Z9.
-
-       01  CONS3.
-           05 FILLER PIC X(12)  VALUE 'CLIENTES EN '.
-           05 FILLER PIC X(12)  VALUE 'CHICAGO   : '. 
-           05 COUNT-CHI-S     PIC Z9.
-
-       01  PIE1.
-           05 FILLER  PIC X(19) VALUE '-------------------'.
-           05 FILLER  PIC X(19) VALUE '-------------------'.
-
-
        01 FLAGS.
          05 BANDERA-CURSOR          PIC X VALUE SPACE.
                88  FIN-CURSOR        VALUE 'Y'.
@@ -70,7 +42,7 @@
       *****************************************************
       * DECLARACION SQL DE LA TABLA                       *
       *****************************************************
-                EXEC SQL DECLARE Z94470T  TABLE
+                EXEC SQL DECLARE Z94379T  TABLE
                         (ACCTNO     CHAR(8)  NOT NULL,
                          LIMIT      DECIMAL(9,2)     ,
                          BALANCE    DECIMAL(9,2)     ,
@@ -82,14 +54,19 @@
                          RESERVED   CHAR(7)  NOT NULL,
                          COMMENTS   CHAR(50) NOT NULL)
                          END-EXEC.
-
+      *****************************************************
+      * SQL CURSORS                                       *
+      *****************************************************
+                EXEC SQL DECLARE CURTABLA  CURSOR FOR
+                         SELECT * FROM Z94379T
+                 END-EXEC.
       *****************************************************
       * VARIABLES HOST EN DONDE RECIBIMOS LA TABLA        *
       *****************************************************
        01 VARIABLES-HOST.
-          02 ACCT-ID            PIC X(7).
+          02 ACCT-ID            PIC X(8).
           02 ACCT-LIMITE        PIC S9(7)V99 COMP-3.
-          02 ACCT-SALDO         PIC S9(10)V99 COMP-3.
+          02 ACCT-SALDO         PIC S9(7)V99 COMP-3.
           02 ACCT-APEP          PIC X(20).
           02 ACCT-NOMBRE        PIC X(15).
           02 ACCT-DIRE1         PIC X(25).
@@ -97,71 +74,61 @@
           02 ACCT-DIRE3         PIC X(15).
           02 ACCT-RESER         PIC X(7).
           02 ACCT-COMENT        PIC X(50).
-          02 CONT-CHI           PIC S9(9)V99 COMP-3.
-
-       77 VIR PIC X(10) VALUE 'Virginia'.
-       77 CHI PIC X(10) VALUE 'Chicago'.
 
        PROCEDURE DIVISION.
        EMPIEZO-PROGRAMA.
                 OPEN OUTPUT REPOUT.
+                SET NO-FIN-CURSOR TO TRUE
                 PERFORM PROCESO-PRINCIPAL.
-                
+
        FIN-PROGRAMA.
                 CLOSE REPOUT.
                 GOBACK.
 
        PROCESO-PRINCIPAL.
-                 WRITE REPREC FROM ENCA1.
-                 PERFORM SUMSQL
-                 PERFORM CONTVIR
-                 PERFORM CONTCHI
-                 PERFORM ESCRIBE-REPORTE
-                 WRITE REPREC FROM PIE1.
-
-       SUMSQL.          
-           EXEC SQL
-                 SELECT SUM(BALANCE)
-                 INTO :ACCT-SALDO
-                 FROM Z94470T
-           END-EXEC
-                 PERFORM EVALUO-SQLCODES.
-       CONTVIR.
-           EXEC SQL
-                 SELECT COUNT(*)
-                 INTO :ACCT-LIMITE
-                 FROM Z94470T
-                 WHERE ADDRESS3 = :VIR
-           END-EXEC
-                 PERFORM EVALUO-SQLCODES.
-
-       CONTCHI.
-           EXEC SQL
-                    SELECT COUNT(*)
-                    INTO :CONT-CHI
-                    FROM Z94470T
-                    WHERE ADDRESS3 = :CHI
-           END-EXEC
-                    PERFORM EVALUO-SQLCODES.
+                PERFORM ABRO-CURSOR
+                PERFORM LEO-CURSOR
+                PERFORM CICLO-CURSOR UNTIL FIN-CURSOR
+                PERFORM CIERRO-CURSOR.
+                
+       CICLO-CURSOR.
+                PERFORM ESCRIBE-REPORTE.
+                PERFORM LEO-CURSOR.
 
        ESCRIBE-REPORTE.
+                MOVE  ACCT-ID      TO  ACCT-ID-O.
                 MOVE  ACCT-LIMITE  TO  ACCT-LIMITE-O.
                 MOVE  ACCT-SALDO   TO  ACCT-SALDO-O.
                 MOVE  ACCT-APEP    TO  ACCT-APEP-O.
-                MOVE CONT-CHI  TO COUNT-CHI-S.
-                WRITE REPREC FROM CONS1.
-                WRITE REPREC FROM CONS2.
-                WRITE REPREC FROM CONS3.
+                MOVE  ACCT-NOMBRE  TO  ACCT-NOMBRE-O.
+                WRITE REPREC AFTER ADVANCING 2 LINES.
 
-       EVALUO-SQLCODES.
+       EVALUO-SQLCODES.    
            EVALUATE SQLCODE
               WHEN SQLCODE0
-                  DISPLAY 'CONSULTA EXITOSA ' SQLCODE
+                   SET NO-FIN-CURSOR TO TRUE
               WHEN SQLCODE100
-                  DISPLAY 'FILA NO ENCONTRADA ' SQLCODE
-                  STOP RUN
-              WHEN OTHER
-                   MOVE 'ERROR EN QUERY' TO UD-ERROR-MESSAGE
-                   DISPLAY UD-ERROR-MESSAGE SQLCODE
-                   STOP RUN
-           END-EVALUATE.
+                   SET FIN-CURSOR TO TRUE
+              WHEN OTHER    
+                   MOVE 'ERROR EN CURSOR' TO UD-ERROR-MESSAGE
+                   STOP RUN 
+           END-EVALUATE.   
+
+       ABRO-CURSOR.
+           EXEC SQL
+              OPEN CURTABLA
+           END-EXEC.
+           PERFORM EVALUO-SQLCODES.
+
+       LEO-CURSOR.    
+           EXEC SQL 
+              FETCH CURTABLA 
+              INTO :VARIABLES-HOST
+           END-EXEC.
+           PERFORM EVALUO-SQLCODES.
+
+       CIERRO-CURSOR.
+           EXEC SQL 
+              CLOSE CURTABLA  
+           END-EXEC.
+           PERFORM EVALUO-SQLCODES.

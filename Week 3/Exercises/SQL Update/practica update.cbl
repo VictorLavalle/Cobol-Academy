@@ -16,34 +16,23 @@
       *-------------
        FILE SECTION.
        FD  REPOUT
-               RECORD CONTAINS 43 CHARACTERS
+               RECORD CONTAINS 119 CHARACTERS
                LABEL RECORDS ARE OMITTED
                DATA RECORD IS REPREC.
 
        01  REPREC.
-           05  ACCT-NOMBRE-O    PIC X(15).
-           05  ACCT-ESTADO      PIC X(15).
+           05  ACCT-ID-O        PIC X(8).
+           05  ACCT-LIMITE-O    PIC $$,$$$,$$9.99.
            05  ACCT-SALDO-O     PIC $$,$$$,$$9.99.
+           05  ACCT-APEP-O      PIC X(20).
+           05  ACCT-NOMBRE-O    PIC X(15).
+           05  ACCT-COMENTS-O   PIC X(50).
 
        WORKING-STORAGE SECTION.
        01 FLAGS.
          05 BANDERA-CURSOR          PIC X VALUE SPACE.
                88  FIN-CURSOR        VALUE 'Y'.
                88  NO-FIN-CURSOR     VALUE 'N'.
-
-       01 ENC-1.
-         05 FILLER        PIC X(09) VALUE 'REALIZO: '.                 
-         05 FILLER        PIC X(14) VALUE 'MANUEL JIMENEZ'.                 
-       
-       01 ENC-2.
-         05 FILLER        PIC X(15) VALUE 'NOMBRE'.                 
-         05 FILLER        PIC X(15) VALUE 'ESTADO'.                 
-         05 FILLER        PIC X(13) VALUE 'SALDO'.                 
-
-       01 PIE-PROM.
-          05 FILLER             PIC X(33) 
-             VALUE 'Promedio de saldo de clientes es='.
-          05 MASK-PROM          PIC $$,$$$,$$9.99.        
       *****************************************************
                 EXEC SQL INCLUDE SQLCA  END-EXEC.
       *****************************************************
@@ -70,23 +59,26 @@
       * SQL CURSORS                                       *
       *****************************************************
                 EXEC SQL DECLARE CURTABLA  CURSOR FOR
-                        SELECT FIRSTN, ADDRESS3, BALANCE FROM Z94473T 
-                        ORDER BY BALANCE DESC LIMIT 3
+                         SELECT * FROM Z94473T
                  END-EXEC.
       *****************************************************
       * VARIABLES HOST EN DONDE RECIBIMOS LA TABLA        *
       *****************************************************
        01 VARIABLES-HOST.
-          02 ACCT-NOMBRE        PIC X(15).
-          02 ACCT-DIRE3         PIC X(15).
+          02 ACCT-ID            PIC X(8).
+          02 ACCT-LIMITE        PIC S9(7)V99 COMP-3.
           02 ACCT-SALDO         PIC S9(7)V99 COMP-3.
-         
+          02 ACCT-APEP          PIC X(20).
+          02 ACCT-NOMBRE        PIC X(15).
+          02 ACCT-DIRE1         PIC X(25).
+          02 ACCT-DIRE2         PIC X(20).
+          02 ACCT-DIRE3         PIC X(15).
+          02 ACCT-RESER         PIC X(7).
+          02 ACCT-COMENT        PIC X(50).
 
-       01 CONSTANTES-UPDATE.
-          02 WSC-NY             PIC X(15) VALUE 'NUEVA YORK'.
-
-       01 VARIABLES-PROMEDIO.
-          02 WSV-PROM           PIC S9(7)V99 COMP-3.
+       01 VARIABLES-UPDATE.
+          02 WS-UPD-NAME      PIC X(6) VALUE 'Victor'.
+          02 WS-ACCT-ID         PIC X(8) VALUE '17891797'.
 
        PROCEDURE DIVISION.
        EMPIEZO-PROGRAMA.
@@ -99,19 +91,11 @@
                 GOBACK.
 
        PROCESO-PRINCIPAL.
-                WRITE REPREC FROM ENC-1
-                MOVE SPACES TO REPREC
-                WRITE REPREC AFTER ADVANCING 1 LINES
-                WRITE REPREC FROM ENC-2
-                PERFORM UPDATE-NY
-                PERFORM SACAR-PROMEDIO
+                PERFORM UPDATE-RECORD
                 PERFORM ABRO-CURSOR
                 PERFORM LEO-CURSOR
                 PERFORM CICLO-CURSOR UNTIL FIN-CURSOR
                 PERFORM CIERRO-CURSOR
-                MOVE SPACES TO REPREC
-                WRITE REPREC AFTER ADVANCING 1 LINES
-                WRITE REPREC FROM PIE-PROM.
                 .
 
 
@@ -120,23 +104,22 @@
                 PERFORM LEO-CURSOR.
 
        ESCRIBE-REPORTE.
-                INITIALIZE REPREC
-                MOVE  ACCT-NOMBRE  TO  ACCT-NOMBRE-O.
-                MOVE  ACCT-DIRE3   TO  ACCT-ESTADO.  
+                MOVE  ACCT-ID      TO  ACCT-ID-O.
+                MOVE  ACCT-LIMITE  TO  ACCT-LIMITE-O.
                 MOVE  ACCT-SALDO   TO  ACCT-SALDO-O.
+                MOVE  ACCT-APEP    TO  ACCT-APEP-O.
+                MOVE  ACCT-NOMBRE  TO  ACCT-NOMBRE-O.
+                MOVE  ACCT-COMENT  TO  ACCT-COMENTS-O.
                 WRITE REPREC AFTER ADVANCING 2 LINES.
 
        EVALUO-SQLCODES.
            EVALUATE SQLCODE
               WHEN SQLCODE0
                    SET NO-FIN-CURSOR TO TRUE
-                   DISPLAY 'EL CURSOR SE EJECUTO CORRECTAMENTE'
               WHEN SQLCODE100
                    SET FIN-CURSOR TO TRUE
-                   DISPLAY 'CURZOR FINALIZADO'
               WHEN OTHER
                    MOVE 'ERROR EN CURSOR' TO UD-ERROR-MESSAGE
-                   DISPLAY UD-ERROR-MESSAGE
                    STOP RUN
            END-EVALUATE.
 
@@ -159,22 +142,11 @@
            END-EXEC.
            PERFORM EVALUO-SQLCODES.
 
-       UPDATE-NY.
+       UPDATE-RECORD.
            EXEC SQL
-              UPDATE Z94473T 
-              SET ADDRESS3 = :WSC-NY 
-              WHERE BALANCE IN (
-                  SELECT BALANCE 
-                  FROM Z94473T 
-                  ORDER BY BALANCE DESC 
-                  FETCH FIRST 3 ROWS ONLY)
+              UPDATE Z94473T
+              SET COMMENTS = :WS-UPD-NAME
+              WHERE ACCTNO = :WS-ACCT-ID
            END-EXEC.
-       
-       SACAR-PROMEDIO.
-           EXEC SQL
-             SELECT AVG(BALANCE) INTO :WSV-PROM
-             FROM Z94473T
-           END-EXEC
-           
-           MOVE WSV-PROM TO MASK-PROM
-           .
+
+
