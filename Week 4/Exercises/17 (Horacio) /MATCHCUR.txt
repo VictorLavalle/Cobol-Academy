@@ -1,0 +1,307 @@
+      *-----------------------                                                  
+      * Copyright Contributors to the COBOL Programming Course                  
+      * SPDX-License-Identifier: CC-BY-4.0                                      
+      *-----------------------                                                  
+       IDENTIFICATION DIVISION.                                                 
+      *-----------------------                                                  
+       PROGRAM-ID.    MATCHCUR                                                  
+                                                                                
+       ENVIRONMENT DIVISION.                                                    
+      *--------------------                                                     
+       CONFIGURATION SECTION.                                                   
+       INPUT-OUTPUT SECTION.                                                    
+       FILE-CONTROL.                                                            
+           SELECT REGMATCH ASSIGN TO UT-S-REPORT                                
+                           FILE STATUS IS WS-FS-S1.                             
+       DATA DIVISION.                                                           
+      *-------------                                                            
+       FILE SECTION.                                                            
+      *-------------                                                            
+       FD  REGMATCH                                                             
+           RECORD CONTAINS 120 CHARACTERS                                       
+           LABEL RECORDS ARE OMITTED                                            
+           RECORDING MODE F                                                     
+           DATA RECORD IS REPREC.                                               
+      *                                                                         
+       01  REPREC.                                                              
+           05  ACCT-NO-O      PIC X(8).                                         
+           05  ACCT-LIMIT-O   PIC $$,$$$,$$9.99.                                
+           05  ACCT-BALANCE-O PIC $$,$$$,$$9.99.                                
+           05  ACCT-LASTN-O   PIC X(20).                                        
+           05  ACCT-FIRSTN-O  PIC X(15).                                        
+           05  ACCT-COMMENT-O PIC X(50).                                        
+      *-------------                                                            
+                                                                                
+       WORKING-STORAGE SECTION.                                                 
+      *****************************************************                     
+      * STRUCTURE FOR INPUT                               *                     
+      *****************************************************                     
+      *                                                                         
+       01 WS-VARIABLES.                                                         
+         05 WS-SQLCODE            PIC -9(05).                                   
+      *                                                                         
+       01 WS-CONTADORES.                                                        
+         05 WS-LEIDOS-C1          PIC 9(04).                                    
+         05 WS-LEIDOS-C2          PIC 9(04).                                    
+         05 WS-ESCRITOS-S1        PIC 9(04).                                    
+      *                                                                         
+       01 WS-LLAVES.                                                            
+         05 WS-KEY-C1.                                                          
+            10 KEY-C1-CUENTA      PIC X(8).                                     
+         05 WS-KEY-C2.                                                          
+            10 KEY-C2-CUENTA      PIC X(8).                                     
+      *                                                                         
+       01 FLAGS.                                                                
+         05 WS-FS-S1               PIC X(02)  VALUE SPACE.                      
+            88  FILE-S1-OK                    VALUE '00'.                       
+            88  FIN-FILE-S1                   VALUE '10'.                       
+         05 INPUT-SWITCH-C1        PIC X      VALUE  'Y'.                       
+            88  NOMORE-INPUT-C1               VALUE  'N'.                       
+         05 INPUT-SWITCH-C2        PIC X      VALUE  'Y'.                       
+            88  NOMORE-INPUT-C2               VALUE  'N'.                       
+                                                                                
+      *****************************************************                     
+      * SQL INCLUDE FOR SQLCA                             *                     
+      *****************************************************                     
+                EXEC SQL INCLUDE SQLCA  END-EXEC.                               
+      *****************************************************                     
+      * SQL DECLARATION FOR VIEW ACCOUNTS - TABLA W -     *                     
+      *****************************************************                     
+                EXEC SQL DECLARE Z94379W TABLE                                  
+                        (ACCTNO     CHAR(8)  NOT NULL,                          
+                         LIMIT      DECIMAL(9,2)     ,                          
+                         BALANCE    DECIMAL(9,2)     ,                          
+                         SURNAME    CHAR(20) NOT NULL,                          
+                         FIRSTN     CHAR(15) NOT NULL,                          
+                         ADDRESS1   CHAR(25) NOT NULL,                          
+                         ADDRESS2   CHAR(20) NOT NULL,                          
+                         ADDRESS3   CHAR(15) NOT NULL,                          
+                         RESERVED   CHAR(7)  NOT NULL,                          
+                         COMMENTS   CHAR(50) NOT NULL)                          
+                         END-EXEC.                                              
+      *****************************************************                     
+      * SQL DECLARATION FOR VIEW ACCOUNTS - TABLA Y -     *                     
+      *****************************************************                     
+                EXEC SQL DECLARE Z94379Y TABLE                                  
+                        (ACCTNO     CHAR(8)  NOT NULL,                          
+                         LIMIT      DECIMAL(9,2)     ,                          
+                         BALANCE    DECIMAL(9,2)     ,                          
+                         SURNAME    CHAR(20) NOT NULL,                          
+                         FIRSTN     CHAR(15) NOT NULL,                          
+                         ADDRESS1   CHAR(25) NOT NULL,                          
+                         ADDRESS2   CHAR(20) NOT NULL,                          
+                         ADDRESS3   CHAR(15) NOT NULL,                          
+                         RESERVED   CHAR(7)  NOT NULL,                          
+                         COMMENTS   CHAR(50) NOT NULL)                          
+                         END-EXEC.                                              
+      *****************************************************                     
+      * SQL CURSORS                                       *                     
+      *****************************************************                     
+                EXEC SQL DECLARE CUR1  CURSOR FOR                               
+                         SELECT * FROM Z94379W ORDER BY ACCTNO                  
+                END-EXEC.                                                       
+      *                                                                         
+                EXEC SQL DECLARE CUR2  CURSOR FOR                               
+                         SELECT * FROM Z94379Y ORDER BY ACCTNO                  
+                END-EXEC.                                                       
+      *****************************************************                     
+      * STRUCTURE FOR CUSTOMER RECORD - TABLA W -         *                     
+      *****************************************************                     
+       01 CUSTOMER-RECORD-W.                                                    
+          02 ACCT-NO-W          PIC X(8).                                       
+          02 ACCT-LIMIT-W       PIC S9(7)V99 COMP-3.                            
+          02 ACCT-BALANCE-W     PIC S9(7)V99 COMP-3.                            
+          02 ACCT-LASTN-W       PIC X(20).                                      
+          02 ACCT-FIRSTN-W      PIC X(15).                                      
+          02 ACCT-ADDR1-W       PIC X(25).                                      
+          02 ACCT-ADDR2-W       PIC X(20).                                      
+          02 ACCT-ADDR3-W       PIC X(15).                                      
+          02 ACCT-RSRVD-W       PIC X(7).                                       
+          02 ACCT-COMMENT-W     PIC X(50).                                      
+      *****************************************************                     
+      * STRUCTURE FOR CUSTOMER RECORD - TABLA Y -         *                     
+      *****************************************************                     
+       01 CUSTOMER-RECORD-Y.                                                    
+          02 ACCT-NO-Y          PIC X(8).                                       
+          02 ACCT-LIMIT-Y       PIC S9(7)V99 COMP-3.                            
+          02 ACCT-BALANCE-Y     PIC S9(7)V99 COMP-3.                            
+          02 ACCT-LASTN-Y       PIC X(20).                                      
+          02 ACCT-FIRSTN-Y      PIC X(15).                                      
+          02 ACCT-ADDR1-Y       PIC X(25).                                      
+          02 ACCT-ADDR2-Y       PIC X(20).                                      
+          02 ACCT-ADDR3-Y       PIC X(15).                                      
+          02 ACCT-RSRVD-Y       PIC X(7).                                       
+          02 ACCT-COMMENT-Y     PIC X(50).                                      
+                                                                                
+       PROCEDURE DIVISION.                                                      
+      *------------------                                                       
+       0000-CONTROL.                                                            
+                PERFORM 1000-INICIO                                             
+                PERFORM 2000-PROCESA UNTIL NOMORE-INPUT-C1                      
+                                     AND   NOMORE-INPUT-C2                      
+                PERFORM 3000-TERMINA                                            
+                STOP RUN.                                                       
+      *                                                                         
+       1000-INICIO.                                                             
+                PERFORM 1100-INICIALIZAR-VAR                                    
+                PERFORM 1200-ABRIR-ARCHIVOS                                     
+                PERFORM 1300-ABRIR-CURSORES                                     
+                PERFORM 1400-LEER-C1                                            
+                PERFORM 1500-LEER-C2.                                           
+      *                                                                         
+       1100-INICIALIZAR-VAR.                                                    
+                INITIALIZE WS-CONTADORES WS-LLAVES.                             
+      *                                                                         
+       1200-ABRIR-ARCHIVOS.                                                     
+           OPEN OUTPUT  REGMATCH                                                
+           EVALUATE TRUE                                                        
+              WHEN FILE-S1-OK                                                   
+                 CONTINUE                                                       
+              WHEN OTHER                                                        
+                 DISPLAY 'ERROR OPEN - FILE STATUS S1...' WS-FS-S1              
+                 STOP RUN                                                       
+           END-EVALUATE.                                                        
+      *                                                                         
+       1300-ABRIR-CURSORES.                                                     
+                EXEC SQL                                                        
+                   OPEN CUR1                                                    
+                END-EXEC                                                        
+                EVALUATE SQLCODE                                                
+                   WHEN 0                                                       
+                   WHEN 100                                                     
+                     CONTINUE                                                   
+                   WHEN OTHER                                                   
+                     DISPLAY '*** ERROR OPEN CUR1 ***'                          
+                     MOVE SQLCODE TO WS-SQLCODE                                 
+                     DISPLAY '*** SQLCODE ES.........' WS-SQLCODE               
+                     STOP RUN                                                   
+                END-EVALUATE                                                    
+      *                                                                         
+                EXEC SQL                                                        
+                   OPEN CUR2                                                    
+                END-EXEC                                                        
+                EVALUATE SQLCODE                                                
+                   WHEN 0                                                       
+                   WHEN 100                                                     
+                     CONTINUE                                                   
+                   WHEN OTHER                                                   
+                     DISPLAY '*** ERROR OPEN CUR2 ***'                          
+                     MOVE SQLCODE TO WS-SQLCODE                                 
+                     DISPLAY '*** SQLCODE ES.........' WS-SQLCODE               
+                     STOP RUN                                                   
+                END-EVALUATE.                                                   
+      *                                                                         
+       1400-LEER-C1.                                                            
+      *                                                                         
+                EXEC SQL FETCH CUR1  INTO :CUSTOMER-RECORD-W END-EXEC           
+                EVALUATE SQLCODE                                                
+                   WHEN 0                                                       
+                      ADD   1          TO  WS-LEIDOS-C1                         
+                      MOVE  ACCT-NO-W  TO  KEY-C1-CUENTA                        
+                   WHEN 100                                                     
+                      MOVE  'N'        TO  INPUT-SWITCH-C1                      
+                      MOVE  '99999999' TO  KEY-C1-CUENTA                        
+                   WHEN OTHER                                                   
+                     DISPLAY '*** ERROR LEER CUR1 ***'                          
+                     MOVE SQLCODE TO WS-SQLCODE                                 
+                     DISPLAY '*** SQLCODE ES.........' WS-SQLCODE               
+                     STOP RUN                                                   
+                END-EVALUATE.                                                   
+      *                                                                         
+       1500-LEER-C2.                                                            
+                EXEC SQL FETCH CUR2  INTO :CUSTOMER-RECORD-Y END-EXEC           
+                EVALUATE SQLCODE                                                
+                   WHEN 0                                                       
+                      ADD   1          TO  WS-LEIDOS-C2                         
+                      MOVE  ACCT-NO-Y  TO  KEY-C2-CUENTA                        
+                   WHEN 100                                                     
+                      MOVE  'N'        TO  INPUT-SWITCH-C2                      
+                      MOVE  '99999999' TO  KEY-C2-CUENTA                        
+                   WHEN OTHER                                                   
+                     DISPLAY '*** ERROR LEER CUR2 ***'                          
+                     MOVE SQLCODE TO WS-SQLCODE                                 
+                     DISPLAY '*** SQLCODE ES.........' WS-SQLCODE               
+                     STOP RUN                                                   
+                END-EVALUATE.                                                   
+      *                                                                         
+       2000-PROCESA.                                                            
+           EVALUATE TRUE                                                        
+             WHEN WS-KEY-C1 = WS-KEY-C2                                         
+                PERFORM 2100-ESCRIBIR-SALIDA                                    
+                PERFORM 1400-LEER-C1                                            
+                PERFORM 1500-LEER-C2                                            
+             WHEN WS-KEY-C1 < WS-KEY-C2                                         
+                PERFORM 1400-LEER-C1                                            
+             WHEN WS-KEY-C1 > WS-KEY-C2                                         
+                PERFORM 1500-LEER-C2                                            
+           END-EVALUATE.                                                        
+      *                                                                         
+       2100-ESCRIBIR-SALIDA.                                                    
+                MOVE  ACCT-NO-W       TO  ACCT-NO-O                             
+                MOVE  ACCT-LIMIT-W    TO  ACCT-LIMIT-O                          
+                MOVE  ACCT-BALANCE-W  TO  ACCT-BALANCE-O                        
+                MOVE  ACCT-LASTN-W    TO  ACCT-LASTN-O                          
+                MOVE  ACCT-FIRSTN-W   TO  ACCT-FIRSTN-O                         
+                MOVE  ACCT-COMMENT-W  TO  ACCT-COMMENT-O                        
+                WRITE REPREC                                                    
+                EVALUATE TRUE                                                   
+                   WHEN FILE-S1-OK                                              
+                      ADD 1 TO WS-ESCRITOS-S1                                   
+                   WHEN OTHER                                                   
+                      DISPLAY 'ERROR WRITE - FILE STATUS S1...' WS-FS-S1        
+                      STOP RUN                                                  
+                END-EVALUATE.                                                   
+      *                                                                         
+       3000-TERMINA.                                                            
+           PERFORM 3100-CERRAR-ARCHS                                            
+           PERFORM 3200-CERRAR-CURSORES                                         
+           PERFORM 3300-DESPLEGAR-CIFRAS-CONTROL.                               
+      *                                                                         
+       3100-CERRAR-ARCHS.                                                       
+           CLOSE REGMATCH                                                       
+           EVALUATE TRUE                                                        
+              WHEN FILE-S1-OK                                                   
+                 CONTINUE                                                       
+              WHEN OTHER                                                        
+                 DISPLAY 'ERROR CLOSE - FILE STATUS S1...' WS-FS-S1             
+                 STOP RUN                                                       
+           END-EVALUATE.                                                        
+      *                                                                         
+       3200-CERRAR-CURSORES.                                                    
+                EXEC SQL                                                        
+                  CLOSE CUR1                                                    
+                END-EXEC                                                        
+                EVALUATE SQLCODE                                                
+                   WHEN 0                                                       
+                   WHEN 100                                                     
+                     CONTINUE                                                   
+                   WHEN OTHER                                                   
+                     DISPLAY '*** ERROR CLOSE CUR1 ***'                         
+                     MOVE SQLCODE TO WS-SQLCODE                                 
+                     DISPLAY '*** SQLCODE ES.........' WS-SQLCODE               
+                     STOP RUN                                                   
+                END-EVALUATE                                                    
+      *                                                                         
+                EXEC SQL                                                        
+                  CLOSE CUR2                                                    
+                END-EXEC                                                        
+                EVALUATE SQLCODE                                                
+                   WHEN 0                                                       
+                   WHEN 100                                                     
+                     CONTINUE                                                   
+                   WHEN OTHER                                                   
+                     DISPLAY '*** ERROR CLOSE CUR2 ***'                         
+                     MOVE SQLCODE TO WS-SQLCODE                                 
+                     DISPLAY '*** SQLCODE ES.........' WS-SQLCODE               
+                     STOP RUN                                                   
+                END-EVALUATE.                                                   
+      *                                                                         
+       3300-DESPLEGAR-CIFRAS-CONTROL.                                           
+           DISPLAY '*****************************************'                  
+           DISPLAY '***  C I F R A S  D E   C O N T R O L ***'                  
+           DISPLAY '***  REGS. LEIDOS C1.........' WS-LEIDOS-C1                 
+           DISPLAY '***  REGS. LEIDOS C2.........' WS-LEIDOS-C2                 
+           DISPLAY '***  REGS. ESCRITOS S1.......' WS-ESCRITOS-S1               
+           DISPLAY '***  F I N   D E   E J E C U C I O N  ***'                  
+           DISPLAY '*****************************************'.                 
+                                                                                
