@@ -1,0 +1,29 @@
+CHANGEMAN O CHANGE MANAGER.- ES UNA HERRAMIENTA QUE SIRVE PARA GESTIONAR Y PROMOVER COMPONENTES
+ENTRE TODOS LOS AMBIENTES HASTA LLEGAR A PRODUCCIÓN (POR EJEMPLO: EN BBVA TENEMOS DESARROLLO, TEST, 
+CALIDAD Y PRODUCCIÓN)
+******************************************************************************************************
+
+1.- PROGRAMAS COBOL (CON O SIN ACCESO A DB2)      -   SRC
+
+2.- PROCEDIMIENTOS (SE CONSTRUYEN EN JCL          -   PRC 
+Y CONTIENEN N PASOS DONDE CADA PASO EJECUTA
+ UN PROGRAMA COBOL O UNA UTILERIA)
+
+3.- COPIES                                        -   CPY
+
+4.- DCLGEN                                        -   DCL
+
+5.- DISPARADORES (NO TIENE PASOS, SOLO SIRVE PARA
+EJECUTAR EL PROCEDIMIENTO)                        -   JCL
+
+6.- MALLAS                                        -   COM
+
+*******************************************************************************************************
+
+
+MALLA SIRVE PARA EJECUTAR JCL'S
+
+JCL      EJECUTA    PRC
+
+EL PRC EJECUTA PROGRAMAS COBOL Y UTILERIAS
+

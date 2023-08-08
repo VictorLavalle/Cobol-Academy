@@ -16,17 +16,16 @@
       *-------------
        FILE SECTION.
        FD  REPOUT
-               RECORD CONTAINS 119 CHARACTERS
+               RECORD CONTAINS 69 CHARACTERS
                LABEL RECORDS ARE OMITTED
                DATA RECORD IS REPREC.
 
        01  REPREC.
-           05  ACCT-ID-O        PIC X(8).
-           05  ACCT-LIMITE-O    PIC $$,$$$,$$9.99.
-           05  ACCT-SALDO-O     PIC $$,$$$,$$9.99.
-           05  ACCT-APEP-O      PIC X(20).
-           05  ACCT-NOMBRE-O    PIC X(15).
-           05  ACCT-COMENTS-O   PIC X(50).
+           05  ACCT-ID-O      PIC X(8).
+           05  ACCT-LIMITE-O  PIC $$,$$$,$$9.99.
+           05  ACCT-SALDO-O   PIC $$,$$$,$$9.99.
+           05  ACCT-APEP-O    PIC X(20).
+           05  ACCT-NOMBRE-O  PIC X(15).
 
        WORKING-STORAGE SECTION.
        01 FLAGS.
@@ -43,7 +42,7 @@
       *****************************************************
       * DECLARACION SQL DE LA TABLA                       *
       *****************************************************
-                EXEC SQL DECLARE Z94473T  TABLE
+                EXEC SQL DECLARE Z94379T  TABLE
                         (ACCTNO     CHAR(8)  NOT NULL,
                          LIMIT      DECIMAL(9,2)     ,
                          BALANCE    DECIMAL(9,2)     ,
@@ -59,7 +58,7 @@
       * SQL CURSORS                                       *
       *****************************************************
                 EXEC SQL DECLARE CURTABLA  CURSOR FOR
-                         SELECT * FROM Z94473T
+                         SELECT * FROM Z94379T
                  END-EXEC.
       *****************************************************
       * VARIABLES HOST EN DONDE RECIBIMOS LA TABLA        *
@@ -76,10 +75,6 @@
           02 ACCT-RESER         PIC X(7).
           02 ACCT-COMENT        PIC X(50).
 
-       01 VARIABLES-UPDATE.
-          02 WS-UPD-NAME      PIC X(6) VALUE 'Victor'.
-          02 WS-ACCT-ID         PIC X(8) VALUE '17891797'.
-
        PROCEDURE DIVISION.
        EMPIEZO-PROGRAMA.
                 OPEN OUTPUT REPOUT.
@@ -91,14 +86,11 @@
                 GOBACK.
 
        PROCESO-PRINCIPAL.
-                PERFORM UPDATE-RECORD
                 PERFORM ABRO-CURSOR
                 PERFORM LEO-CURSOR
                 PERFORM CICLO-CURSOR UNTIL FIN-CURSOR
-                PERFORM CIERRO-CURSOR
-                .
-
-
+                PERFORM CIERRO-CURSOR.
+                
        CICLO-CURSOR.
                 PERFORM ESCRIBE-REPORTE.
                 PERFORM LEO-CURSOR.
@@ -109,19 +101,18 @@
                 MOVE  ACCT-SALDO   TO  ACCT-SALDO-O.
                 MOVE  ACCT-APEP    TO  ACCT-APEP-O.
                 MOVE  ACCT-NOMBRE  TO  ACCT-NOMBRE-O.
-                MOVE  ACCT-COMENT  TO  ACCT-COMENTS-O.
                 WRITE REPREC AFTER ADVANCING 2 LINES.
 
-       EVALUO-SQLCODES.
+       EVALUO-SQLCODES.    
            EVALUATE SQLCODE
               WHEN SQLCODE0
                    SET NO-FIN-CURSOR TO TRUE
               WHEN SQLCODE100
                    SET FIN-CURSOR TO TRUE
-              WHEN OTHER
+              WHEN OTHER    
                    MOVE 'ERROR EN CURSOR' TO UD-ERROR-MESSAGE
-                   STOP RUN
-           END-EVALUATE.
+                   STOP RUN 
+           END-EVALUATE.   
 
        ABRO-CURSOR.
            EXEC SQL
@@ -129,24 +120,15 @@
            END-EXEC.
            PERFORM EVALUO-SQLCODES.
 
-       LEO-CURSOR.
-           EXEC SQL
-              FETCH CURTABLA
+       LEO-CURSOR.    
+           EXEC SQL 
+              FETCH CURTABLA 
               INTO :VARIABLES-HOST
            END-EXEC.
            PERFORM EVALUO-SQLCODES.
 
        CIERRO-CURSOR.
-           EXEC SQL
-              CLOSE CURTABLA
+           EXEC SQL 
+              CLOSE CURTABLA  
            END-EXEC.
            PERFORM EVALUO-SQLCODES.
-
-       UPDATE-RECORD.
-           EXEC SQL
-              UPDATE Z94473T
-              SET COMMENTS = :WS-UPD-NAME
-              WHERE ACCTNO = :WS-ACCT-ID
-           END-EXEC.
-
-
